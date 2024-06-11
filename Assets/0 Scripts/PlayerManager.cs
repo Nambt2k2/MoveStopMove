@@ -42,8 +42,8 @@ public class PlayerManager : MonoBehaviour
 
     void Update()
     {
-        CheckRangeAtk();
         Move();
+        CheckRangeAtk();
 
         if (!isMove && inRangeAtk && holdWeapon.gameObject.activeSelf && !weapon.activeSelf)
         {
@@ -56,13 +56,13 @@ public class PlayerManager : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (weaponController.GetKill())
+        
+        if (weaponController.IsKillEnemy())
         {
-
-            rangeAtk *= 1.2f;
+            rangeAtk *= 1.08f;
             cam.ShrinkCamera();
             posInfo.localPosition *= 1.2f;
-            weaponController.ResetKill();
+            weaponController.ResertIsKillEnemy();
             level++;
             textLevel.text = level.ToString();
         }
@@ -74,13 +74,18 @@ public class PlayerManager : MonoBehaviour
         {
             for (int i = 0; i < 9; i++)
             {
-                GameManager.Instance.GetEnemy()[i].IsChoose(false);
+                GameManager.Instance.GetEnemy()[i].IsPlayerChooseAtk(false);
             }
             enabled = false;
             rigid.velocity = Vector3.zero;
             colli.enabled = false;
             circleRangeAtk.SetActive(false);
             anim.UpdateAnimation(StateAnimation.Dead);
+            GameManager.Instance.SetIsGameOver(true);
+            GameManager.Instance.SetNumRank(GameManager.Instance.GetNumAlive());
+            GameManager.Instance.SetNameEnemyKillPlayer(
+                other.gameObject.GetComponent<WeaponManager>().getCharacter().GetComponent<EnemyManager>().GetNameEnemy());
+            GameManager.Instance.SetNumGold(level);
         }
     }
 
@@ -150,13 +155,19 @@ public class PlayerManager : MonoBehaviour
 
         for (int i = 1; i < 10; i++)
         {
-            GameManager.Instance.GetEnemy()[i - 1].IsChoose(false);
+            GameManager.Instance.GetEnemy()[i - 1].IsPlayerChooseAtk(false);
             if (min == disdistances[i] && min < rangeAtk * rangeAtk)
             {
                 inRangeAtk = true;
                 posEnemy = GameManager.Instance.GetPosEnemy()[i].position;
-                GameManager.Instance.GetEnemy()[i - 1].IsChoose(true);
+                GameManager.Instance.GetEnemy()[i - 1].IsPlayerChooseAtk(true);
             }
+        }
+
+        if (min == 0)
+        {
+            inRangeAtk = false;
+            canAtk = false;
         }
       
     }

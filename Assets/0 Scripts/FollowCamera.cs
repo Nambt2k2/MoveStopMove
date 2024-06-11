@@ -19,12 +19,14 @@ public class FollowCamera : MonoBehaviour
     void LateUpdate()
     {
         transform.position = targetObject.position + cameraOffset;
-        ArrowEnemy();
+        if (!GameManager.Instance.GetIsGameOver())
+        {
+            ArrowFollowPosEnemy();
+        } 
     }
 
-    void ArrowEnemy()
+    void ArrowFollowPosEnemy()
     {
-        cam.transparencySortMode = TransparencySortMode.Orthographic;
         float minX = dirEnemys[0].GetPixelAdjustedRect().width / 2;
         float maxX = Screen.width - minX;
 
@@ -46,17 +48,6 @@ public class FollowCamera : MonoBehaviour
             {
                 GameManager.Instance.GetEnemy()[i - 1].SetArrowSelf(false);
             }
-            //if (Vector3.Dot((GameManager.Instance.GetPosEnemy()[i].position - transform.position), transform.forward) < 0)
-            //{
-            //    if (posDirEnemy.x < Screen.width / 2)
-            //    {
-            //        posDirEnemy.x = maxX;
-            //    }
-            //    else
-            //    {
-            //        posDirEnemy.x = minX;
-            //    }
-            //}
 
             posDirEnemy.x = Mathf.Clamp(posDirEnemy.x, minX, maxX);
             posDirEnemy.y = Mathf.Clamp(posDirEnemy.y, minY, maxY);

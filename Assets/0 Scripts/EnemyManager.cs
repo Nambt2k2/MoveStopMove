@@ -10,7 +10,7 @@ public class EnemyManager : MonoBehaviour
     [Header("Enemy")]
     [SerializeField] Rigidbody rigid;
     [SerializeField] CapsuleCollider colli;
-    [SerializeField] SpriteRenderer isChoose;
+    [SerializeField] SpriteRenderer isPlayerChooseAtk;
     [SerializeField] GameObject info, infoPrefab;
     [SerializeField] bool isMove, inRangeAtk, canAtk;
     [SerializeField] int moveSpeed, level;
@@ -50,15 +50,19 @@ public class EnemyManager : MonoBehaviour
 
         UpdateState();
         anim.UpdateAnimation(stateAnim);
+        if (GameManager.Instance.GetIsGameOver())
+        {
+            arrowSelf.gameObject.SetActive(false);
+        }
     }
 
     void FixedUpdate()
     {
-        if (weaponController.GetKill())
+        if (weaponController.IsKillEnemy())
         {
             rangeAtk *= 1.08f;
             posInfo.localPosition *= 1.2f;
-            weaponController.ResetKill();
+            weaponController.ResertIsKillEnemy();
             level++;
             textLevel.text = level.ToString();
         }
@@ -80,7 +84,7 @@ public class EnemyManager : MonoBehaviour
     void Move()
     {
         info.transform.position = posInfo.position;
-        if (!inRangeAtk)
+        if (!inRangeAtk && GameManager.Instance.GetNumAlive() > 1)
         {
             directionEnemy = posEnemy - transform.position;
             angle = Mathf.Atan2(directionEnemy.x, directionEnemy.z) * Mathf.Rad2Deg;
@@ -100,11 +104,10 @@ public class EnemyManager : MonoBehaviour
     public void Spwan()
     {
         gameObject.SetActive(true);
+        enabled = true;
         info.SetActive(true);
-        anim.gameObject.SetActive(true);
         arrowSelf.gameObject.SetActive(true);
         transform.position = new Vector3(Random.Range(-15, 15), 50, Random.Range(-15, 15));
-        enabled = true;
         colli.enabled = true;
         transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
         weapon.transform.localScale = new Vector3(19.5f, 19.5f, 19.5f);
@@ -172,6 +175,12 @@ public class EnemyManager : MonoBehaviour
             inRangeAtk = false;
             canAtk = false;
         }
+
+        if (min == 0)
+        {
+            inRangeAtk = false;
+            canAtk = false;
+        }
     }
     public void AtkRotation()
     {
@@ -186,9 +195,9 @@ public class EnemyManager : MonoBehaviour
         weapon.transform.Rotate(Vector3.forward * angleAtkRotation * Time.deltaTime);
         weapon.transform.position += directionEnemy.normalized * Time.deltaTime * rangeAtk * 1.6f;
     }
-    public void IsChoose(bool b)
+    public void IsPlayerChooseAtk(bool b)
     {
-        isChoose.enabled = b;
+        isPlayerChooseAtk.enabled = b;
     }
     public void ResetWeapon()
     {
@@ -215,12 +224,18 @@ public class EnemyManager : MonoBehaviour
     {
         holdWeapon.gameObject.SetActive(true);
     }
-    public void SetFalseDisplayAim()
-    {
-        anim.gameObject.SetActive(false);
-    }
     public void SetArrowSelf(bool b)
     {
         arrowSelf.gameObject.SetActive(b);
+    }
+    
+    //get,set
+    public string GetNameEnemy()
+    {
+        return nameEnemy.text;
+    }
+    public void SetNameEnemy(string s)
+    {
+        nameEnemy.text = s;
     }
 }

@@ -51,12 +51,6 @@ public class EnemyAnimation : MonoBehaviour
     {
         enemy.SetTrueDiplayWeapon();
     }
-    public void SetDead()
-    {
-        enemy.SetArrowSelf(false);
-        enemy.SetFalseDisplayAim();
-    }
-
     public void SetFalseActive()
     {
         enemy.gameObject.SetActive(false);
