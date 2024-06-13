@@ -12,14 +12,14 @@ public class PlayerManager : MonoBehaviour
     [Header("Player")]
     [SerializeField] Rigidbody rigid;
     [SerializeField] CapsuleCollider colli;
-    [SerializeField] GameObject circleRangeAtk, infoPrefab ,info;
+    [SerializeField] GameObject circleRangeAtk, infoPrefab, info;
     [SerializeField] bool isMove, inRangeAtk, canAtk;
     [SerializeField] int moveSpeed, level;
     [SerializeField] float angle, angleAtkRotation, rangeAtk;
     [SerializeField] Text namePlayer, textLevel;
     [SerializeField] Transform posInfo;
     [Header("Enemys")]
-    [SerializeField] float[] disdistances;
+    [SerializeField] float[] distances;
     [SerializeField] Vector3 posEnemy, directionEnemy;
     [Header("Camera")]
     [SerializeField] FollowCamera cam;
@@ -29,11 +29,12 @@ public class PlayerManager : MonoBehaviour
 
     void Awake()
     {
-        disdistances = new float[10];
+        distances = new float[Constant.NUMCHARACTER1TURN];
         info = Instantiate(infoPrefab);
         namePlayer = info.GetComponentsInChildren<Text>()[0];
         textLevel = info.GetComponentsInChildren<Text>()[1];
-        namePlayer.text = "Nam";
+        info.SetActive(false);
+        namePlayer.text = "You";
         weapon = Instantiate(weaponPrefab);
         weapon.SetActive(false);
         weaponController = weapon.GetComponent<WeaponManager>();
@@ -42,14 +43,16 @@ public class PlayerManager : MonoBehaviour
 
     void Update()
     {
-        Move();
-        CheckRangeAtk();
-
-        if (!isMove && inRangeAtk && holdWeapon.gameObject.activeSelf && !weapon.activeSelf)
+        if (GameManager.Instance.GetIsStartGame())
         {
-            canAtk = true;
+            Move();
+            CheckRangeAtk();
+            if (!isMove && inRangeAtk && holdWeapon.gameObject.activeSelf && !weapon.activeSelf)
+            {
+                canAtk = true;
+            }
         }
-        
+
         UpdateState();
         anim.UpdateAnimation(stateAnim);
     }
@@ -59,9 +62,9 @@ public class PlayerManager : MonoBehaviour
         
         if (weaponController.IsKillEnemy())
         {
-            rangeAtk *= 1.08f;
+            rangeAtk *= Constant.ZOOMLEVELUP;
             cam.ShrinkCamera();
-            posInfo.localPosition *= 1.2f;
+            posInfo.localPosition *= Constant.SHRINKCAM;
             weaponController.ResertIsKillEnemy();
             level++;
             textLevel.text = level.ToString();
@@ -70,9 +73,9 @@ public class PlayerManager : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Weapon") && other.gameObject != weapon)
+        if (other.CompareTag(Constant.WEAPON) && other.gameObject != weapon)
         {
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < Constant.NUMCHARACTER1TURN - 1; i++)
             {
                 GameManager.Instance.GetEnemy()[i].IsPlayerChooseAtk(false);
             }
@@ -103,47 +106,44 @@ public class PlayerManager : MonoBehaviour
             angle = Mathf.Atan2(movement.x, movement.z) * Mathf.Rad2Deg;
             transform.eulerAngles = Vector3.up * angle;
             isMove = true;
-            stateAnim = StateAnimation.Run;
         }
         else
         {
             isMove = false;
-            stateAnim = StateAnimation.Idle;
         }
     }
 
     //atk
     void CheckRangeAtk()
     {
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < Constant.NUMCHARACTER1TURN; i++)
         {
             if (GameManager.Instance.GetCharacter()[i].activeSelf && GameManager.Instance.GetColliCharacter()[i].enabled)
             {
-                disdistances[i] = (GameManager.Instance.GetPosEnemy()[i].position - transform.position).sqrMagnitude;
+                distances[i] = (GameManager.Instance.GetPosEnemy()[i].position - transform.position).sqrMagnitude;
             }
             else
             {
-                canAtk = false;
-                disdistances[i] = 1000;
+                distances[i] = Constant.DISTANCEWHENDIE;
             }
         }
 
-        float min = 0;
+        float min = distances[0];
 
-        for (int i = 0; i < 10; i++)
+        for (int i = 1; i < Constant.NUMCHARACTER1TURN; i++)
         {
-            if (disdistances[i] != 0)
+            if (distances[i] != 0)
             {
-                min = disdistances[i];
+                min = distances[i];
                 break;
             }
         }
         
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < Constant.NUMCHARACTER1TURN; i++)
         {
-            if (min > disdistances[i] && disdistances[i] != 0)
+            if (min > distances[i] && distances[i] != 0)
             {
-                min = disdistances[i];
+                min = distances[i];
             }
         }
 
@@ -153,23 +153,16 @@ public class PlayerManager : MonoBehaviour
             canAtk = false;
         }
 
-        for (int i = 1; i < 10; i++)
+        for (int i = 1; i < Constant.NUMCHARACTER1TURN; i++)
         {
             GameManager.Instance.GetEnemy()[i - 1].IsPlayerChooseAtk(false);
-            if (min == disdistances[i] && min < rangeAtk * rangeAtk)
+            if (min == distances[i] && min < rangeAtk * rangeAtk)
             {
                 inRangeAtk = true;
                 posEnemy = GameManager.Instance.GetPosEnemy()[i].position;
                 GameManager.Instance.GetEnemy()[i - 1].IsPlayerChooseAtk(true);
             }
         }
-
-        if (min == 0)
-        {
-            inRangeAtk = false;
-            canAtk = false;
-        }
-      
     }
     public void AtkRotation()
     {
@@ -182,7 +175,7 @@ public class PlayerManager : MonoBehaviour
             weapon.SetActive(true);
         }
         weapon.transform.Rotate(Vector3.forward * angleAtkRotation * Time.deltaTime);
-        weapon.transform.position += directionEnemy.normalized * Time.deltaTime * rangeAtk * 1.6f;
+        weapon.transform.position += directionEnemy.normalized * Time.deltaTime * rangeAtk * Constant.DISTANCEWEAPONALIVE;
     }
     public void ResetWeapon()
     {
@@ -192,8 +185,16 @@ public class PlayerManager : MonoBehaviour
     //animation
     void UpdateState()
     {
-        if (canAtk)
-            stateAnim = StateAnimation.Attack;
+        if (rigid.velocity.x != 0 || rigid.velocity.z != 0)
+        {
+            stateAnim = StateAnimation.Run;
+        }
+        else
+        {
+            stateAnim = StateAnimation.Idle;
+            if (canAtk)
+                stateAnim = StateAnimation.Attack;
+        } 
     }
 
     //event animation
@@ -208,5 +209,15 @@ public class PlayerManager : MonoBehaviour
     public void SetTrueDiplayWeapon()
     {
         holdWeapon.gameObject.SetActive(true);
+    }
+
+    //set,get
+    public GameObject GetCircleRangeAtk()
+    {
+        return circleRangeAtk;
+    }
+    public GameObject GetInfo()
+    {
+        return info;
     }
 }

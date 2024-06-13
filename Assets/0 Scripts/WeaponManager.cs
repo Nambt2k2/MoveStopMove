@@ -15,12 +15,12 @@ public class WeaponManager : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Character") && other.gameObject != character.gameObject)
+        if (other.CompareTag(Constant.CHARACTER) && other.gameObject != character.gameObject)
         {
             meshWeapon.enabled = false;
             colliWeapon.enabled = false;
-            transform.localScale *= 1.08f;
-            character.localScale *= 1.08f;
+            transform.localScale *= Constant.ZOOMLEVELUP;
+            character.localScale *= Constant.ZOOMLEVELUP;
             isKillEnemy = true;
             GameManager.Instance.NumberEnemyAlive();
         }

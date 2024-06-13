@@ -9,7 +9,7 @@ public class PlayerAnimation : MonoBehaviour
 
     void Update()
     {
-        if (isAtk && timeAtk < 1)
+        if (isAtk && timeAtk < Constant.TIMEATK)
         {
             timeAtk += Time.deltaTime;
             player.AtkRotation();

@@ -5,21 +5,21 @@ using UnityEngine.UI;
 public class FollowCamera : MonoBehaviour
 {
     [SerializeField] Transform targetObject;
-    [SerializeField] Vector3 cameraOffset;
-    Camera cam;
+    [SerializeField] Camera camCheckEnemy, camFollowPlayer;
+    [SerializeField] Animator camFollowAnimator, camCheckEnemyAnimator;
+     [SerializeField] Vector3 cameraOffset;
 
     [SerializeField] Image[] dirEnemys;
 
     void Awake()
     {
         cameraOffset = transform.position - targetObject.position;
-        cam = GetComponent<Camera>();
     }
 
     void LateUpdate()
     {
         transform.position = targetObject.position + cameraOffset;
-        if (!GameManager.Instance.GetIsGameOver())
+        if (!GameManager.Instance.GetIsGameOver() && GameManager.Instance.GetIsStartGame())
         {
             ArrowFollowPosEnemy();
         } 
@@ -32,11 +32,11 @@ public class FollowCamera : MonoBehaviour
 
         float minY = dirEnemys[0].GetPixelAdjustedRect().width / 2;
         float maxY = Screen.height - minY;
-        Vector2 posPlayer = cam.WorldToScreenPoint(GameManager.Instance.GetPosEnemy()[0].position);
+        Vector2 posPlayer = camCheckEnemy.WorldToScreenPoint(GameManager.Instance.GetPosEnemy()[0].position);
 
         for (int i = 1; i < 10; i++)
         {
-            Vector2 posDirEnemy = cam.WorldToScreenPoint(GameManager.Instance.GetPosEnemy()[i].position);
+            Vector2 posDirEnemy = camCheckEnemy.WorldToScreenPoint(GameManager.Instance.GetPosEnemy()[i].position);
             Vector2 dir = posDirEnemy - posPlayer;
             float angle = Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg;
             dirEnemys[i - 1].transform.eulerAngles = Vector3.back * angle;
@@ -57,14 +57,14 @@ public class FollowCamera : MonoBehaviour
 
     public void ShrinkCamera()
     {
-        StartCoroutine(Animate());
+        StartCoroutine(AnimateShrinkCamera());
     }
-    IEnumerator Animate()
+    IEnumerator AnimateShrinkCamera()
     {
         float elapsed = 0f;
         float duration = 1f;
         Vector3 from = cameraOffset;
-        Vector3 to = cameraOffset * 1.05f;
+        Vector3 to = cameraOffset * Constant.SHRINKCAM;
 
         while (elapsed < duration)
         {
@@ -74,5 +74,11 @@ public class FollowCamera : MonoBehaviour
         }
 
         cameraOffset = to;
+    }
+
+    public void MoveCameraToPlayGame()
+    {
+        camFollowAnimator.enabled = true;
+        camCheckEnemyAnimator.enabled = true;
     }
 }

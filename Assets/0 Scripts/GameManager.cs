@@ -5,45 +5,66 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
-
-    [SerializeField] GameObject[] characters;
+    [Header("Game")]
+    [SerializeField] FollowCamera camManager;
+    [SerializeField] GameObject[] characters, wepons, hairs, shields, sets;
     [SerializeField] Transform[] posCharacters;
     [SerializeField] CapsuleCollider[] colliCharacters;
     [SerializeField] EnemyManager[] enemys;
+    [SerializeField] PlayerManager player;
+    [SerializeField] Material[] colorBodys, colorPants;
     [SerializeField] int alive, sumNumberCharacter;
     [SerializeField] float countDownSpawnEnemy;
-    [SerializeField] bool isGameOver;
-
-    [SerializeField] GameObject ReviveNowUI, RankInfoUI, TouchToContinue;
+    [SerializeField] bool isGameOver, isGameStart;
+    [Header("UI")]
+    [SerializeField] GameObject homeUI, gamePlayUI, camUI3D, skinUI, goShopUI, gameOverUI;
+    [SerializeField] GameObject reviveNowUI, rankInfoUI, touchToContinueUI, settingUI, numAliveUI, settingBtnUI;
+    [SerializeField] GameObject[] tabSkinUI;
+    [SerializeField] Image[] tabIconSkinUI;
     [SerializeField] Text numAlive, timeLoadGameOverText, numRank, nameEnemyKillPlayer, numGold;
-    [SerializeField] Canvas gameOverUI;
-    [SerializeField] RawImage loadCircleGameOver;
+    [SerializeField] RawImage loadCircleGameOver, onSound, offSound, onVibration, offVibration;
     [SerializeField] int speedRotate;
     [SerializeField] float timeLoadGameOver;
 
     void Awake()
     {
-        posCharacters = new Transform[10];
-        colliCharacters = new CapsuleCollider[10];
-        enemys = new EnemyManager[9];
+        posCharacters = new Transform[Constant.NUMCHARACTER1TURN];
+        colliCharacters = new CapsuleCollider[Constant.NUMCHARACTER1TURN];
+        enemys = new EnemyManager[Constant.NUMCHARACTER1TURN - 1];
 
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < Constant.NUMCHARACTER1TURN; i++)
         {
             posCharacters[i] = characters[i].transform;
             colliCharacters[i] = characters[i].GetComponent<CapsuleCollider>();
         }
-        for (int i = 0; i < 9; i++)
+
+        for (int i = 0; i < Constant.NUMCHARACTER1TURN - 1; i++)
         {
             enemys[i] = characters[i + 1].GetComponent<EnemyManager>();
-            enemys[i].SetNameEnemy("enemy" + (i + 1));
         }
 
         Instance = this;
     }
 
+    void Start()
+    {
+        for (int i = 0; i < Constant.NUMCHARACTER1TURN - 1; i++)
+            enemys[i].SetNameEnemy("Enemy" + (i + 1));
+    }
+
     void Update()
     {
-        for (int i = 1; i < 10; i++)
+        SpawnEnemy();
+
+        if (isGameOver)
+        {
+            GameOverSquence();
+        }
+    }
+
+    void SpawnEnemy()
+    {
+        for (int i = 1; i < Constant.NUMCHARACTER1TURN; i++)
         {
             if (characters[i].activeSelf == false && sumNumberCharacter < 40)
             {
@@ -56,25 +77,30 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+    }
 
-        if (isGameOver)
+    void GameOverSquence()
+    {
+        gameOverUI.SetActive(true);
+        if (timeLoadGameOver > 0)
         {
-            gameOverUI.enabled = true;
-            if (timeLoadGameOver > 0)
+            timeLoadGameOver -= Time.deltaTime;
+            loadCircleGameOver.transform.Rotate(Vector3.forward * speedRotate * Time.deltaTime);
+            timeLoadGameOverText.text = ((int)timeLoadGameOver).ToString();
+            settingUI.SetActive(false);
+            numAliveUI.SetActive(false);
+            settingBtnUI.SetActive(false);
+        }
+        else
+        {
+            if (isGameStart)
             {
-                timeLoadGameOver -= Time.deltaTime;
-                loadCircleGameOver.transform.Rotate(Vector3.forward * speedRotate * Time.deltaTime);
-                timeLoadGameOverText.text = ((int)timeLoadGameOver).ToString();
-            }
-            else
-            {
-                ReviveNowUI.SetActive(false);
-                TouchToContinue.SetActive(true);
-                RankInfoUI.SetActive(true);
+                reviveNowUI.SetActive(false);
+                touchToContinueUI.SetActive(true);
+                rankInfoUI.SetActive(true);
             }
         }
     }
-
 
     public void RestartGame()
     {
@@ -89,9 +115,9 @@ public class GameManager : MonoBehaviour
     }
     public void CloseReviveNow()
     {
-        ReviveNowUI.SetActive(false);
-        TouchToContinue.SetActive(true);
-        RankInfoUI.SetActive(true);
+        reviveNowUI.SetActive(false);
+        touchToContinueUI.SetActive(true);
+        rankInfoUI.SetActive(true);
     }
     public void SetNumRank(int numRank) 
     {
@@ -104,6 +130,64 @@ public class GameManager : MonoBehaviour
     public void SetNumGold(int numGold)
     {
         this.numGold.text = numGold.ToString();
+    }
+    public void DisplaySettingUI(bool b)
+    {
+        settingUI.SetActive(b);
+        numAliveUI.SetActive(!b);
+        settingBtnUI.SetActive(!b);
+    }
+    public void OnOffSound()
+    {
+        onSound.enabled = !onSound.enabled;
+        offSound.enabled = !offSound.enabled;
+    }
+    public void OnOffVibration()
+    {
+        onVibration.enabled = !onVibration.enabled;
+        offVibration.enabled = !offVibration.enabled;
+    }
+    public void GoToGamePlayUI()
+    {
+        isGameStart = true;
+        homeUI.SetActive(false);
+        gamePlayUI.SetActive(true);
+        player.GetCircleRangeAtk().SetActive(true);
+        player.GetInfo().SetActive(true);
+        foreach (EnemyManager enemy in enemys)
+        {
+            enemy.GetInfo().SetActive(true);
+        }
+        camManager.MoveCameraToPlayGame();
+    }
+    public void PlayGoHomeUI()
+    {
+        isGameStart = false;
+        RestartGame();
+    }
+    public void GoSkinUI()
+    {
+        goShopUI.SetActive(false);
+        camUI3D.SetActive(true);
+    }
+    public void SkinUIGoHomeUI()
+    {
+        goShopUI.SetActive(true);
+        camUI3D.SetActive(false);
+
+    }
+    public void SwitchTabSkinUI(int index)
+    {
+        foreach (GameObject tab in tabSkinUI)
+        {
+            tab.SetActive(false);
+        }
+        tabSkinUI[index].SetActive(true);
+        foreach (Image tab in tabIconSkinUI)
+        {
+            tab.enabled = true;
+        }
+        tabIconSkinUI[index].enabled = false;
     }
 
     //get, set
@@ -123,6 +207,14 @@ public class GameManager : MonoBehaviour
     {
         return enemys;
     }
+    public Material[] GetBody()
+    {
+        return colorBodys;
+    }
+    public Material[] GetPant()
+    {
+        return colorPants;
+    }
     public int GetNumAlive()
     {
         return alive;
@@ -134,5 +226,9 @@ public class GameManager : MonoBehaviour
     public bool GetIsGameOver()
     {
         return isGameOver;
+    }
+    public bool GetIsStartGame()
+    {
+        return isGameStart;
     }
 }
