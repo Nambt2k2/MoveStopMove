@@ -17,7 +17,6 @@ public class EnemyAnimation : MonoBehaviour
         else
         {
             isAtk = false;
-            enemy.ResetWeapon();
             timeAtk = 0;
         }
     }

@@ -18,6 +18,13 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] float angle, angleAtkRotation, rangeAtk;
     [SerializeField] Text namePlayer, textLevel;
     [SerializeField] Transform posInfo;
+    [Header("PlayerSkin")]
+    [SerializeField] SkinnedMeshRenderer body, pant;
+    [SerializeField] Material pantCur, pantOrigin, bobyOrigin;
+    [SerializeField] GameObject[] hairs, shields, sets;
+    [SerializeField] GameObject hairBegin, shieldBegin;
+    [SerializeField] int hairCur, shieldCur, setCur;
+    [SerializeField] bool isUseSet;
     [Header("Enemys")]
     [SerializeField] float[] distances;
     [SerializeField] Vector3 posEnemy, directionEnemy;
@@ -51,9 +58,8 @@ public class PlayerManager : MonoBehaviour
             {
                 canAtk = true;
             }
+            UpdateState();
         }
-
-        UpdateState();
         anim.UpdateAnimation(stateAnim);
     }
 
@@ -177,10 +183,6 @@ public class PlayerManager : MonoBehaviour
         weapon.transform.Rotate(Vector3.forward * angleAtkRotation * Time.deltaTime);
         weapon.transform.position += directionEnemy.normalized * Time.deltaTime * rangeAtk * Constant.DISTANCEWEAPONALIVE;
     }
-    public void ResetWeapon()
-    {
-        weapon.SetActive(false);
-    }
 
     //animation
     void UpdateState()
@@ -219,5 +221,159 @@ public class PlayerManager : MonoBehaviour
     public GameObject GetInfo()
     {
         return info;
+    }
+    public void SetDance()
+    {
+        stateAnim = StateAnimation.Dance;
+    }
+    public void SetIdle()
+    {
+        stateAnim = StateAnimation.Idle;
+    }
+
+    //UI
+    public void SaveSkinCur()
+    {
+        SavePantCur(pant.material);
+        for (int i = 0; i < hairs.Length; i++)
+        {
+            if (hairs[i].activeSelf == true)
+            {
+                SaveHairCur(i);
+                break;
+            }
+        }
+        for (int i = 0; i < shields.Length; i++)
+        {
+            if (shields[i].activeSelf == true)
+            {
+                SaveShieldCur(i);
+                break;
+            }
+        }
+    }
+    public void SavePantCur(Material m)
+    {
+        pantCur = m;
+    }
+    public void SaveHairCur(int i)
+    {
+        hairCur = i;
+    }
+    public void SaveShieldCur(int i)
+    {
+        shieldCur = i;
+    }
+    public void SaveSetCur(int i)
+    {
+        setCur = i;
+    }
+    public void LoadSkinCur()
+    {
+        if (!isUseSet)
+        {
+            LoadSkinOrigin();
+            pant.material = pantCur;
+            if (hairCur < 0)
+                SetHair(-1);
+            else
+                SetHair(hairCur);
+            if (shieldCur < 0)
+                SetShield(-1);
+            else
+                SetShield(shieldCur);
+        }
+        else
+        {
+            SetSet(setCur);
+        }
+    }
+    public void LoadSkinOrigin()
+    {
+        pant.material = pantOrigin;
+        body.material = bobyOrigin;
+        SetHair(-1);
+        SetShield(-1);
+        foreach (GameObject itemSet in sets)
+        {
+            itemSet.SetActive(false);
+        }
+    }
+    public void AutoSetChangeTab(int indexTab)
+    {
+        switch (indexTab)
+        {
+            case (int)SkinOrder.Hair:
+                LoadSkinOrigin();
+                SetHair(0);
+                break;
+            case (int)SkinOrder.Pant:
+                LoadSkinOrigin();
+                SetPant(0);
+                break;
+            case (int)SkinOrder.Shield:
+                LoadSkinOrigin();
+                SetShield(0);
+                break;
+            case (int)SkinOrder.Set:
+                LoadSkinOrigin();
+                SetSet(0);
+                break;
+        }
+    }
+
+    public void SetPant(int index)
+    {
+        pant.material = GameManager.Instance.GetPant()[index];
+    }
+    public void SetHair(int index)
+    {
+        if (index >= 0 && index < GameManager.Instance.GetHair().Length)
+        {
+            foreach (GameObject hair in hairs)
+            {
+                hair.SetActive(false);
+            }
+            hairs[index].SetActive(true);
+        }
+        if (index < 0)
+        {
+            foreach (GameObject hair in hairs)
+            {
+                hair.SetActive(false);
+            }
+        }
+    }
+    public void SetShield(int index)
+    {
+        if (index >= 0 && index < GameManager.Instance.GetShield().Length)
+        {
+            foreach (GameObject shield in shields)
+            {
+                shield.SetActive(false);
+            }
+            shields[index].SetActive(true);
+        }
+        if (index < 0)
+        {
+            foreach (GameObject shield in shields)
+            {
+                shield.SetActive(false);
+            }
+        }
+    }
+    public void SetSet(int index)
+    {
+        switch (index) 
+        {
+            case 0:
+                pant.material = GameManager.Instance.GetBody()[3];
+                body.material = GameManager.Instance.GetBody()[3];
+                SetHair(3);
+                sets[0].SetActive(true);
+                sets[1].SetActive(true);
+                break;
+
+        }
     }
 }

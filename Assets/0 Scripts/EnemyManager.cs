@@ -208,10 +208,6 @@ public class EnemyManager : MonoBehaviour
     {
         isPlayerChooseAtk.enabled = b;
     }
-    public void ResetWeapon()
-    {
-        weapon.SetActive(false);
-    }
 
     //animation
     void UpdateState()

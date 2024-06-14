@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class WeaponManager : MonoBehaviour
 {
@@ -6,11 +7,22 @@ public class WeaponManager : MonoBehaviour
     [SerializeField] bool isKillEnemy;
     [SerializeField] MeshRenderer meshWeapon;
     [SerializeField] BoxCollider colliWeapon;
+    [SerializeField] float timeLife;
+    Coroutine deactiveWait = null;
 
     void OnEnable()
     {
         meshWeapon.enabled = true;
         colliWeapon.enabled = true;
+        deactiveWait = StartCoroutine(DeactiveAfterTime());
+    }
+    void OnDisable()
+    {
+        if (deactiveWait != null)
+        {
+            StopCoroutine(deactiveWait);
+            deactiveWait = null;
+        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -24,6 +36,12 @@ public class WeaponManager : MonoBehaviour
             isKillEnemy = true;
             GameManager.Instance.NumberEnemyAlive();
         }
+    }
+
+    IEnumerator DeactiveAfterTime()
+    {
+        yield return new WaitForSeconds(1f);
+        gameObject.SetActive(false);
     }
 
     public void SetCharacter(Transform character)

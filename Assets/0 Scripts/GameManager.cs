@@ -7,23 +7,24 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
     [Header("Game")]
     [SerializeField] FollowCamera camManager;
-    [SerializeField] GameObject[] characters, wepons, hairs, shields, sets;
+    [SerializeField] GameObject[] characters, wepons, hairs, shields;
     [SerializeField] Transform[] posCharacters;
     [SerializeField] CapsuleCollider[] colliCharacters;
     [SerializeField] EnemyManager[] enemys;
     [SerializeField] PlayerManager player;
     [SerializeField] Material[] colorBodys, colorPants;
+
     [SerializeField] int alive, sumNumberCharacter;
     [SerializeField] float countDownSpawnEnemy;
     [SerializeField] bool isGameOver, isGameStart;
     [Header("UI")]
-    [SerializeField] GameObject homeUI, gamePlayUI, camUI3D, skinUI, goShopUI, gameOverUI;
+    [SerializeField] GameObject homeUI, gamePlayUI, camSkinUI, camWeaponUI, skinUI, goShopUI, gameOverUI;
     [SerializeField] GameObject reviveNowUI, rankInfoUI, touchToContinueUI, settingUI, numAliveUI, settingBtnUI;
-    [SerializeField] GameObject[] tabSkinUI;
-    [SerializeField] Image[] tabIconSkinUI;
+    [SerializeField] GameObject[] tabSkinUI, tabWeaponUI;
+    [SerializeField] Image[] tabIconSkinUI, isChoosePants, isChooseHairs, isChooseShield, isChooseSet;
     [SerializeField] Text numAlive, timeLoadGameOverText, numRank, nameEnemyKillPlayer, numGold;
     [SerializeField] RawImage loadCircleGameOver, onSound, offSound, onVibration, offVibration;
-    [SerializeField] int speedRotate;
+    [SerializeField] int speedRotateTimeGameOver, numberTabSkin;
     [SerializeField] float timeLoadGameOver;
 
     void Awake()
@@ -85,7 +86,7 @@ public class GameManager : MonoBehaviour
         if (timeLoadGameOver > 0)
         {
             timeLoadGameOver -= Time.deltaTime;
-            loadCircleGameOver.transform.Rotate(Vector3.forward * speedRotate * Time.deltaTime);
+            loadCircleGameOver.transform.Rotate(Vector3.forward * speedRotateTimeGameOver * Time.deltaTime);
             timeLoadGameOverText.text = ((int)timeLoadGameOver).ToString();
             settingUI.SetActive(false);
             numAliveUI.SetActive(false);
@@ -119,14 +120,14 @@ public class GameManager : MonoBehaviour
         touchToContinueUI.SetActive(true);
         rankInfoUI.SetActive(true);
     }
-    public void SetNumRank(int numRank) 
+    public void SetNumRank(int numRank)
     {
         this.numRank.text += numRank.ToString();
     }
-    public void SetNameEnemyKillPlayer(string nameEnemyKillPlayer) 
+    public void SetNameEnemyKillPlayer(string nameEnemyKillPlayer)
     {
         this.nameEnemyKillPlayer.text = nameEnemyKillPlayer;
-    } 
+    }
     public void SetNumGold(int numGold)
     {
         this.numGold.text = numGold.ToString();
@@ -168,26 +169,92 @@ public class GameManager : MonoBehaviour
     public void GoSkinUI()
     {
         goShopUI.SetActive(false);
-        camUI3D.SetActive(true);
+        camSkinUI.SetActive(true);
+        player.SetDance();
+        player.SaveSkinCur();
+        player.AutoSetChangeTab(0);
+        camManager.MoveCameraToSkinUI(1);
     }
     public void SkinUIGoHomeUI()
     {
         goShopUI.SetActive(true);
-        camUI3D.SetActive(false);
-
+        camSkinUI.SetActive(false);
+        player.SetIdle();
+        player.LoadSkinCur();
+        camManager.MoveCameraToSkinUI(-1);
     }
-    public void SwitchTabSkinUI(int index)
+    public void GoWeaponUI()
     {
+        goShopUI.SetActive(false);
+        camWeaponUI.SetActive(true);
+        player.gameObject.SetActive(false);
+    }
+    public void WeaponUIGoHomeUI()
+    {
+        goShopUI.SetActive(true);
+        camWeaponUI.SetActive(false);
+        player.gameObject.SetActive(true);
+    }
+    public void SwitchTabSkinUI(int indexTab)
+    {
+        numberTabSkin = indexTab;
+        SwitchChooseSkin(0);
         foreach (GameObject tab in tabSkinUI)
         {
             tab.SetActive(false);
         }
-        tabSkinUI[index].SetActive(true);
-        foreach (Image tab in tabIconSkinUI)
+
+        tabSkinUI[indexTab].SetActive(true);
+        player.AutoSetChangeTab(indexTab);
+
+        foreach (Image tabIcon in tabIconSkinUI)
         {
-            tab.enabled = true;
+            tabIcon.enabled = true;
         }
-        tabIconSkinUI[index].enabled = false;
+        tabIconSkinUI[indexTab].enabled = false;
+    }
+
+    public void SwitchTabWerponUI(int indexTab)
+    {
+        tabWeaponUI[Mathf.Clamp(indexTab - 1, 0, tabWeaponUI.Length - 1)].SetActive(false);
+        tabWeaponUI[Mathf.Clamp(indexTab + 1, 0, tabWeaponUI.Length - 1)].SetActive(false);
+        tabWeaponUI[indexTab].SetActive(true);
+    }
+
+    public void SwitchChooseSkin(int indexChoose)
+    {
+        if (numberTabSkin == 0)
+        {
+            foreach (Image hair in isChooseHairs)
+            {
+                hair.enabled = false;
+            }
+            isChooseHairs[indexChoose].enabled = true;
+        }
+        else if (numberTabSkin == 1)
+        {
+            foreach (Image pant in isChoosePants)
+            {
+                pant.enabled = false;
+            }
+            isChoosePants[indexChoose].enabled = true;
+        }
+        else if (numberTabSkin == 2)
+        {
+            foreach (Image shield in isChooseShield)
+            {
+                shield.enabled = false;
+            }
+            isChooseShield[indexChoose].enabled = true;
+        }
+        else
+        {
+            foreach (Image set in isChooseSet)
+            {
+                set.enabled = false;
+            }
+            isChooseSet[indexChoose].enabled = true;
+        }
     }
 
     //get, set
@@ -214,6 +281,14 @@ public class GameManager : MonoBehaviour
     public Material[] GetPant()
     {
         return colorPants;
+    }
+    public GameObject[] GetHair ()
+    {
+        return hairs;
+    }
+    public GameObject[] GetShield()
+    {
+        return shields;
     }
     public int GetNumAlive()
     {

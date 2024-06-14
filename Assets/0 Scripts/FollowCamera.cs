@@ -81,4 +81,24 @@ public class FollowCamera : MonoBehaviour
         camFollowAnimator.enabled = true;
         camCheckEnemyAnimator.enabled = true;
     }
+
+    public void MoveCameraToSkinUI(int dirTime)
+    {
+        StartCoroutine(AnimateRotationCamera(dirTime));
+    }
+    IEnumerator AnimateRotationCamera(int dirTime)
+    {
+        float elapsed = 0f;
+        float duration = 1f;
+        float from = 43 - dirTime * 5;
+        float to = from + 10 * dirTime;
+
+        while (elapsed < duration)
+        {
+            transform.localEulerAngles = Vector3.right * Mathf.Lerp(from, to, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        transform.localEulerAngles = Vector3.right * to;
+    }
 }

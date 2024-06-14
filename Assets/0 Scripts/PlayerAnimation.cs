@@ -17,7 +17,6 @@ public class PlayerAnimation : MonoBehaviour
         else
         {
             isAtk = false;
-            player.ResetWeapon();
             timeAtk = 0;
         }
     }

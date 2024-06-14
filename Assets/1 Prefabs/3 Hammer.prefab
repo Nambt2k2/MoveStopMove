@@ -63,8 +63,8 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -6478536213147159724, guid: 90389cac50942cb4ca38583e6531094a, type: 3}
-  - {fileID: 4874126678125670354, guid: 90389cac50942cb4ca38583e6531094a, type: 3}
+  - {fileID: 2100000, guid: 01671e52dcaca1f43a892d03f17817cc, type: 2}
+  - {fileID: 2100000, guid: b775a35f12dc0a047b3312007ca725da, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -112,6 +112,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   character: {fileID: 0}
-  killEnemy: 0
+  isKillEnemy: 0
   meshWeapon: {fileID: 5182420469613409083}
   colliWeapon: {fileID: 5776484810338316218}
