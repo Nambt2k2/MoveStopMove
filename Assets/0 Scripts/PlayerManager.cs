@@ -1,36 +1,44 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerManager : MonoBehaviour
 {
-    [Header("Move")]
+    [Header("Move-----------")]
     [SerializeField] DynamicJoystick joytick;
-    [Header("Weapon")]
+    [Header("Weapon---------")]
     [SerializeField] Transform holdWeapon, posWeapon;
-    [SerializeField] GameObject weaponPrefab, weapon;
+    [SerializeField] GameObject[] weaponPrefab;
+    [SerializeField] GameObject weapon;
     [SerializeField] WeaponManager weaponController;
-    [Header("Player")]
+    [Header("Player---------")]
     [SerializeField] Rigidbody rigid;
     [SerializeField] CapsuleCollider colli;
     [SerializeField] GameObject circleRangeAtk, infoPrefab, info;
+    [SerializeField] Transform posInfo;
     [SerializeField] bool isMove, inRangeAtk, canAtk;
     [SerializeField] int moveSpeed, level;
     [SerializeField] float angle, angleAtkRotation, rangeAtk;
+    [Header("PlayerUI--------")]
+    [SerializeField] InputField inputNamePlayer;
     [SerializeField] Text namePlayer, textLevel;
-    [SerializeField] Transform posInfo;
-    [Header("PlayerSkin")]
+    [Header("ShopWeaponUI----")]
+    [SerializeField] int indexWeaponCur, indexWeaponOpen;
+    [SerializeField] Text[] weaponBuys, weaponUses;
+    [Header("PlayerSkin-----")]
     [SerializeField] SkinnedMeshRenderer body, pant;
     [SerializeField] Material pantCur, pantOrigin, bobyOrigin;
     [SerializeField] GameObject[] hairs, shields, sets;
-    [SerializeField] GameObject hairBegin, shieldBegin;
-    [SerializeField] int hairCur, shieldCur, setCur;
+    [SerializeField] Text hairBuy, hairUse;
+    [SerializeField] int hairCur, shieldCur, setCur, indexSkinChoose;
     [SerializeField] bool isUseSet;
-    [Header("Enemys")]
+    [SerializeField] List<int> hairsBought;
+    [Header("Enemys---------")]
     [SerializeField] float[] distances;
     [SerializeField] Vector3 posEnemy, directionEnemy;
-    [Header("Camera")]
+    [Header("Camera---------")]
     [SerializeField] FollowCamera cam;
-    [Header("Animation")]
+    [Header("Animation------")]
     [SerializeField] PlayerAnimation anim;
     [SerializeField] StateAnimation stateAnim = StateAnimation.Idle;
 
@@ -41,11 +49,14 @@ public class PlayerManager : MonoBehaviour
         namePlayer = info.GetComponentsInChildren<Text>()[0];
         textLevel = info.GetComponentsInChildren<Text>()[1];
         info.SetActive(false);
-        namePlayer.text = "You";
-        weapon = Instantiate(weaponPrefab);
-        weapon.SetActive(false);
-        weaponController = weapon.GetComponent<WeaponManager>();
-        weaponController.SetCharacter(transform);
+        inputNamePlayer.text = GameManager.Instance.GetDataPlayer().LoadGame().GetNamePlayer();
+        indexWeaponCur = GameManager.Instance.GetDataPlayer().LoadGame().GetIndexWeaponCur();
+        indexWeaponOpen = GameManager.Instance.GetDataPlayer().LoadGame().GetIndexWeaponOpen();
+        hairCur = GameManager.Instance.GetDataPlayer().LoadGame().GetIndexHairCur();
+        SetHair(hairCur);
+        hairsBought = GameManager.Instance.GetDataPlayer().LoadGame().GetHairBought();
+        ReadyOpenWeaponUI();
+        SpawnWeaponPlayer();
     }
 
     void Update()
@@ -62,10 +73,8 @@ public class PlayerManager : MonoBehaviour
         }
         anim.UpdateAnimation(stateAnim);
     }
-
     void FixedUpdate()
-    {
-        
+    {      
         if (weaponController.IsKillEnemy())
         {
             rangeAtk *= Constant.ZOOMLEVELUP;
@@ -76,7 +85,6 @@ public class PlayerManager : MonoBehaviour
             textLevel.text = level.ToString();
         }
     }
-
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag(Constant.WEAPON) && other.gameObject != weapon)
@@ -94,7 +102,7 @@ public class PlayerManager : MonoBehaviour
             GameManager.Instance.SetNumRank(GameManager.Instance.GetNumAlive());
             GameManager.Instance.SetNameEnemyKillPlayer(
                 other.gameObject.GetComponent<WeaponManager>().getCharacter().GetComponent<EnemyManager>().GetNameEnemy());
-            GameManager.Instance.SetNumGold(level);
+            GameManager.Instance.SetNumGold(level * 100);
         }
     }
 
@@ -183,6 +191,13 @@ public class PlayerManager : MonoBehaviour
         weapon.transform.Rotate(Vector3.forward * angleAtkRotation * Time.deltaTime);
         weapon.transform.position += directionEnemy.normalized * Time.deltaTime * rangeAtk * Constant.DISTANCEWEAPONALIVE;
     }
+    public void SpawnWeaponPlayer()
+    {
+        weapon = Instantiate(weaponPrefab[indexWeaponCur]);
+        weapon.SetActive(false);
+        weaponController = weapon.GetComponent<WeaponManager>();
+        weaponController.SetCharacter(transform);
+    }
 
     //animation
     void UpdateState()
@@ -213,7 +228,7 @@ public class PlayerManager : MonoBehaviour
         holdWeapon.gameObject.SetActive(true);
     }
 
-    //set,get
+    //set, get
     public GameObject GetCircleRangeAtk()
     {
         return circleRangeAtk;
@@ -230,8 +245,160 @@ public class PlayerManager : MonoBehaviour
     {
         stateAnim = StateAnimation.Idle;
     }
+    public int GetIndexWeaponOpen()
+    {
+        return indexWeaponOpen;
+    }
+    public int GetIndexWeaponCur()
+    {
+        return indexWeaponCur;
+    }
+    public string GetNamePlayer()
+    {
+        return inputNamePlayer.text;
+    }
+    public Text GetHairBuyText() 
+    {
+        return hairBuy;    
+    } 
+    public Text GetHairUseText()
+    {
+        return hairUse;
+    }
+    public int GetHairCur()
+    {
+        return hairCur;
+    }
+    public List<int> GetHairsBought()
+    {
+        return hairsBought;
+    }
+    public int GetIndexSkinChoose()
+    {
+        return indexSkinChoose;
+    }
 
     //UI
+    public void BuyWeapon(int index)
+    {
+        int cost = 0;
+        cost = GameManager.Instance.GetDataPlayer().GetWeaponData(index + 1).cost;
+
+        if (indexWeaponOpen == index && cost <= GameManager.Instance.GetGold())
+        {
+            GameManager.Instance.SetGold(-cost);
+            GameManager.Instance.SetNumGoldText(GameManager.Instance.GetGold());
+            weaponBuys[indexWeaponOpen].gameObject.SetActive(false);
+            indexWeaponOpen++;
+            weaponUses[indexWeaponOpen].gameObject.SetActive(true);
+        }
+    }
+    public void UseWeapon(int index)
+    {
+        if (indexWeaponCur != index && index <= indexWeaponOpen)
+        {
+            indexWeaponCur = index;
+            ReadyOpenWeaponUI();
+            GameManager.Instance.WeaponUIGoHomeUI();
+        }
+    }
+    public void ReadyOpenWeaponUI()
+    {
+        for (int i = 0; i <= indexWeaponOpen; i++)
+        {
+            if (i < indexWeaponOpen)
+            {
+                weaponBuys[i].gameObject.SetActive(false);
+            }   
+            weaponUses[i].gameObject.SetActive(true);
+            weaponUses[i].text = Constant.SELECT;
+            GameManager.Instance.GetWeapons()[i].SetActive(false);
+        }
+        GameManager.Instance.GetWeapons()[indexWeaponCur].SetActive(true);
+        weaponUses[indexWeaponCur].text = Constant.EQUIPPED;
+
+        int length = GameManager.Instance.GetTabWeaponUI().Length;
+        for (int i = 0; i < length; i++)
+        {
+            GameManager.Instance.GetTabWeaponUI()[i].SetActive(false);
+        }
+        GameManager.Instance.GetTabWeaponUI()[indexWeaponCur].SetActive(true);
+    }
+    public void BuyHair()
+    {
+        foreach(int i in hairsBought)
+        {
+            if (indexSkinChoose == i)
+            {
+                return;
+            }
+        }
+
+        if (Constant.COSTSKIN <= GameManager.Instance.GetGold())
+        {
+            GameManager.Instance.SetGold(-Constant.COSTSKIN);
+            GameManager.Instance.SetNumGoldText(GameManager.Instance.GetGold());
+            hairsBought.Add(indexSkinChoose);
+            SetBoughtSkin(hairBuy, hairUse);
+        }
+    }
+    public void SetBoughtSkin(Text off, Text on)
+    {
+        off.gameObject.SetActive(false);
+        on.gameObject.SetActive(true);
+    }
+
+    public void UseHair()
+    {
+        foreach (int i in hairsBought)
+        {
+            if (indexSkinChoose == i)
+            {
+                if (indexSkinChoose != hairCur)
+                {
+                    hairCur = indexSkinChoose;
+                    SetHair(hairCur);
+                    hairUse.text = Constant.UNEQUIP;
+                }
+                else
+                {
+                    hairCur = -1;
+                    SetHair(hairCur);
+                    hairUse.text = Constant.SELECT;
+                }
+            }
+        }
+    }
+
+    public void ReadyOpenHairUI(int index)
+    {
+        if (index >= 0)
+        {
+            indexSkinChoose = index;
+            foreach (int i in hairsBought)
+                if (index == i)
+                {
+
+                    SetBoughtSkin(GetHairBuyText(), GetHairUseText());
+                    break;
+                }
+                else
+                    SetBoughtSkin(GetHairUseText(), GetHairBuyText());
+        }
+
+        if (indexSkinChoose != GetHairCur())
+        {
+            GetHairUseText().text = Constant.SELECT;
+        }
+        else
+        {
+            GetHairUseText().text = Constant.UNEQUIP;
+        }
+    }
+    public void SetTextNamePlayer()
+    {
+        namePlayer.text = inputNamePlayer.text;
+    }
     public void SaveSkinCur()
     {
         SavePantCur(pant.material);
@@ -239,7 +406,7 @@ public class PlayerManager : MonoBehaviour
         {
             if (hairs[i].activeSelf == true)
             {
-                SaveHairCur(i);
+                hairCur = i;
                 break;
             }
         }
@@ -255,10 +422,6 @@ public class PlayerManager : MonoBehaviour
     public void SavePantCur(Material m)
     {
         pantCur = m;
-    }
-    public void SaveHairCur(int i)
-    {
-        hairCur = i;
     }
     public void SaveShieldCur(int i)
     {
@@ -305,7 +468,14 @@ public class PlayerManager : MonoBehaviour
         {
             case (int)SkinOrder.Hair:
                 LoadSkinOrigin();
-                SetHair(0);
+                if (hairCur < 0)
+                {
+                    SetHair(0);
+                }
+                else
+                {
+                    SetHair(hairCur);
+                }
                 break;
             case (int)SkinOrder.Pant:
                 LoadSkinOrigin();
@@ -321,13 +491,13 @@ public class PlayerManager : MonoBehaviour
                 break;
         }
     }
-
     public void SetPant(int index)
     {
         pant.material = GameManager.Instance.GetPant()[index];
     }
     public void SetHair(int index)
     {
+        ReadyOpenHairUI(index);
         if (index >= 0 && index < GameManager.Instance.GetHair().Length)
         {
             foreach (GameObject hair in hairs)
@@ -367,13 +537,21 @@ public class PlayerManager : MonoBehaviour
         switch (index) 
         {
             case 0:
+                LoadSkinOrigin();
                 pant.material = GameManager.Instance.GetBody()[3];
                 body.material = GameManager.Instance.GetBody()[3];
                 SetHair(3);
                 sets[0].SetActive(true);
                 sets[1].SetActive(true);
                 break;
-
+            case 1:
+                LoadSkinOrigin();
+                pant.material = GameManager.Instance.GetPant()[9];
+                body.material = GameManager.Instance.GetBody()[5];
+                SetHair(4);
+                sets[2].SetActive(true);
+                sets[3].SetActive(true);
+                break;
         }
     }
 }

@@ -3,11 +3,11 @@ using UnityEngine.UI;
 
 public class EnemyManager : MonoBehaviour
 {
-    [Header("Weapon")]
+    [Header("Weapon-----------")]
     [SerializeField] Transform holdWeapon, posWeapon;
     [SerializeField] GameObject weaponPrefab, weapon;
     [SerializeField] WeaponManager weaponController;
-    [Header("Enemy")]
+    [Header("Enemy------------")]
     [SerializeField] Rigidbody rigid;
     [SerializeField] CapsuleCollider colli;
     [SerializeField] SpriteRenderer isPlayerChooseAtk;
@@ -18,12 +18,12 @@ public class EnemyManager : MonoBehaviour
     [SerializeField] Text nameEnemy, textLevel;
     [SerializeField] Transform posInfo;
     [SerializeField] Image arrowSelf;
-    [Header("EnemySkin")]
+    [Header("EnemySkin---------")]
     [SerializeField] SkinnedMeshRenderer body, pant;
-    [Header("Enemys")]
+    [Header("Enemys------------")]
     [SerializeField] float[] distances;
     [SerializeField] Vector3 posEnemy, directionEnemy;
-    [Header("Animation")]
+    [Header("Animation---------")]
     [SerializeField] EnemyAnimation anim;
     [SerializeField] StateAnimation stateAnim = StateAnimation.Idle;
 

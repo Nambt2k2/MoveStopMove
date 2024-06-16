@@ -5,30 +5,44 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
-    [Header("Game")]
+    [Header("Game-----------------")]
+    [SerializeField] DataPlayer dataPlayer;
     [SerializeField] FollowCamera camManager;
-    [SerializeField] GameObject[] characters, wepons, hairs, shields;
+    [SerializeField] PlayerManager player;
+    [SerializeField] GameObject[] characters;
     [SerializeField] Transform[] posCharacters;
     [SerializeField] CapsuleCollider[] colliCharacters;
     [SerializeField] EnemyManager[] enemys;
-    [SerializeField] PlayerManager player;
     [SerializeField] Material[] colorBodys, colorPants;
-
-    [SerializeField] int alive, sumNumberCharacter;
+    [SerializeField] int alive, sumNumberCharacter, gold;
     [SerializeField] float countDownSpawnEnemy;
     [SerializeField] bool isGameOver, isGameStart;
-    [Header("UI")]
-    [SerializeField] GameObject homeUI, gamePlayUI, camSkinUI, camWeaponUI, skinUI, goShopUI, gameOverUI;
-    [SerializeField] GameObject reviveNowUI, rankInfoUI, touchToContinueUI, settingUI, numAliveUI, settingBtnUI;
-    [SerializeField] GameObject[] tabSkinUI, tabWeaponUI;
-    [SerializeField] Image[] tabIconSkinUI, isChoosePants, isChooseHairs, isChooseShield, isChooseSet;
-    [SerializeField] Text numAlive, timeLoadGameOverText, numRank, nameEnemyKillPlayer, numGold;
-    [SerializeField] RawImage loadCircleGameOver, onSound, offSound, onVibration, offVibration;
-    [SerializeField] int speedRotateTimeGameOver, numberTabSkin;
+    [Header("HomeUI--------------")]
+    [SerializeField] GameObject homeUI, goShopUI;
+    [SerializeField] RawImage onSoundHome, offSoundHome, onVibrationHome, offVibrationHome;
+    [SerializeField] Text numGoldHome;
+    [Header("GamePlayUI----------")]
+    [SerializeField] GameObject gamePlayUI, settingUI, settingBtnUI, numAliveUI;
+    [SerializeField] RawImage onSound, offSound, onVibration, offVibration;
+    [SerializeField] Text numAlive;
+    [Header("GameOverUI----------")]
+    [SerializeField] GameObject gameOverUI, reviveNowUI, rankInfoUI, touchToContinueUI;
+    [SerializeField] RawImage loadCircleGameOver;
+    [SerializeField] Text timeLoadGameOverText, numRank, nameEnemyKillPlayer, numGoldGameOver;
     [SerializeField] float timeLoadGameOver;
+    [SerializeField] int speedRotateTimeGameOver;
+    [Header("WeaponShopUI--------")]
+    [SerializeField] GameObject camWeaponUI, weaponUI;
+    [SerializeField] GameObject[] tabWeaponUI, wepons;
+    [Header("SkinShopUI----------")]
+    [SerializeField] GameObject camSkinUI, skinUI;
+    [SerializeField] int indexTabSkinCur;
+    [SerializeField] Image[] tabIconSkinUI, isChoosePants, isChooseHairs, isChooseShield, isChooseSet;
+    [SerializeField] GameObject[] tabSkinUI, hairs, shields;
 
     void Awake()
     {
+        Instance = this;
         posCharacters = new Transform[Constant.NUMCHARACTER1TURN];
         colliCharacters = new CapsuleCollider[Constant.NUMCHARACTER1TURN];
         enemys = new EnemyManager[Constant.NUMCHARACTER1TURN - 1];
@@ -44,7 +58,30 @@ public class GameManager : MonoBehaviour
             enemys[i] = characters[i + 1].GetComponent<EnemyManager>();
         }
 
-        Instance = this;
+        if (PlayerPrefs.GetInt(Constant.SOUND) != 0)
+        {
+            onSoundHome.enabled = true;
+            offSoundHome.enabled = false;
+        }
+        else
+        {
+            onSoundHome.enabled = false;
+            offSoundHome.enabled = true;
+        }
+
+        if (PlayerPrefs.GetInt(Constant.VIBRATION) != 0)
+        {
+            onVibrationHome.enabled = true;
+            offVibrationHome.enabled = false;
+        }
+        else
+        {
+            onVibrationHome.enabled = false;
+            offVibrationHome.enabled = true;
+        }
+
+        this.gold = dataPlayer.LoadGame().GetGold();
+        numGoldHome.text = this.gold.ToString();
     }
 
     void Start()
@@ -52,7 +89,6 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < Constant.NUMCHARACTER1TURN - 1; i++)
             enemys[i].SetNameEnemy("Enemy" + (i + 1));
     }
-
     void Update()
     {
         SpawnEnemy();
@@ -67,7 +103,7 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 1; i < Constant.NUMCHARACTER1TURN; i++)
         {
-            if (characters[i].activeSelf == false && sumNumberCharacter < 40)
+            if (characters[i].activeSelf == false && sumNumberCharacter < 50 - Constant.NUMCHARACTER1TURN)
             {
                 countDownSpawnEnemy -= Time.deltaTime;
                 if (countDownSpawnEnemy < 0)
@@ -79,7 +115,142 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
 
+    //UI Home
+    public void GoToGamePlayUI()
+    {
+        isGameStart = true;
+        homeUI.SetActive(false);
+        gamePlayUI.SetActive(true);
+        player.SpawnWeaponPlayer();
+        player.SetTextNamePlayer();
+        player.GetCircleRangeAtk().SetActive(true);
+        player.GetInfo().SetActive(true);
+        foreach (EnemyManager enemy in enemys)
+        {
+            enemy.GetInfo().SetActive(true);
+        }
+
+        if (PlayerPrefs.GetInt(Constant.SOUND) != 0)
+        {
+            onSound.enabled = true;
+            offSound.enabled = false;
+        }
+        else
+        {
+            onSound.enabled = false;
+            offSound.enabled = true;
+        }
+
+        if (PlayerPrefs.GetInt(Constant.VIBRATION) != 0)
+        {
+            onVibration.enabled = true;
+            offVibration.enabled = false;
+        }
+        else
+        {
+            onVibration.enabled = false;
+            offVibration.enabled = true;
+        }
+
+        camManager.MoveCameraToPlayGame();
+    }
+    public void GoWeaponUI()
+    {
+        goShopUI.SetActive(false);
+        camWeaponUI.SetActive(true);
+        weaponUI.SetActive(true);
+        player.gameObject.SetActive(false);
+    }
+    public void GoSkinUI()
+    {
+        goShopUI.SetActive(false);
+        camSkinUI.SetActive(true);
+        skinUI.SetActive(true);
+        player.SetDance();
+        player.SaveSkinCur();
+        SwitchTabSkinUI(0);
+        SwitchChooseSkin(player.GetHairCur());
+        player.AutoSetChangeTab(0);
+        camManager.MoveCameraToSkinUI(1);
+    }
+    public void OnOffSoundHome()
+    {
+        onSoundHome.enabled = !onSoundHome.enabled;
+        offSoundHome.enabled = !offSoundHome.enabled;
+        if (onSoundHome.enabled)
+        {
+            PlayerPrefs.SetInt(Constant.SOUND, 1);
+        }
+        else
+        {
+            PlayerPrefs.SetInt(Constant.SOUND, 0);
+        }
+    }
+    public void OnOffVibrationHome()
+    {
+        onVibrationHome.enabled = !onVibrationHome.enabled;
+        offVibrationHome.enabled = !offVibrationHome.enabled;
+        if (onVibrationHome.enabled)
+        {
+            PlayerPrefs.SetInt(Constant.VIBRATION, 1);
+        }
+        else
+        {
+            PlayerPrefs.SetInt(Constant.VIBRATION, 0);
+        }
+    }
+
+    //UI Game Play
+    public void NumberEnemyAlive()
+    {
+        alive--;
+        numAlive.text = "Alive: " + alive;
+    }
+    public void DisplaySettingUI(bool b)
+    {
+        settingUI.SetActive(b);
+        numAliveUI.SetActive(!b);
+        settingBtnUI.SetActive(!b);
+    }
+    public void OnOffSound()
+    {
+        onSound.enabled = !onSound.enabled;
+        offSound.enabled = !offSound.enabled;
+        if (onSound.enabled)
+        {
+            PlayerPrefs.SetInt(Constant.SOUND, 1);
+        }
+        else
+        {
+            PlayerPrefs.SetInt(Constant.SOUND, 0);
+        }
+    }
+    public void OnOffVibration()
+    {  
+        onVibration.enabled = !onVibration.enabled;
+        offVibration.enabled = !offVibration.enabled;
+        if (onVibration.enabled)
+        {
+            PlayerPrefs.SetInt(Constant.VIBRATION, 1);
+        }
+        else
+        {
+            PlayerPrefs.SetInt(Constant.VIBRATION, 0);
+        }
+    }
+    public void PlayGoHomeUI()
+    {
+        isGameStart = false;
+        dataPlayer.SaveGame();
+        RestartGame();
+    }
+
+    //UI Game Over
     void GameOverSquence()
     {
         gameOverUI.SetActive(true);
@@ -102,18 +273,6 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-
-    public void RestartGame()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    }
-
-    //UI
-    public void NumberEnemyAlive()
-    {
-        alive--;
-        numAlive.text = "Alive: " + alive;
-    }
     public void CloseReviveNow()
     {
         reviveNowUI.SetActive(false);
@@ -130,75 +289,39 @@ public class GameManager : MonoBehaviour
     }
     public void SetNumGold(int numGold)
     {
-        this.numGold.text = numGold.ToString();
+        numGoldGameOver.text = numGold.ToString();
+        gold += numGold;
     }
-    public void DisplaySettingUI(bool b)
-    {
-        settingUI.SetActive(b);
-        numAliveUI.SetActive(!b);
-        settingBtnUI.SetActive(!b);
-    }
-    public void OnOffSound()
-    {
-        onSound.enabled = !onSound.enabled;
-        offSound.enabled = !offSound.enabled;
-    }
-    public void OnOffVibration()
-    {
-        onVibration.enabled = !onVibration.enabled;
-        offVibration.enabled = !offVibration.enabled;
-    }
-    public void GoToGamePlayUI()
-    {
-        isGameStart = true;
-        homeUI.SetActive(false);
-        gamePlayUI.SetActive(true);
-        player.GetCircleRangeAtk().SetActive(true);
-        player.GetInfo().SetActive(true);
-        foreach (EnemyManager enemy in enemys)
-        {
-            enemy.GetInfo().SetActive(true);
-        }
-        camManager.MoveCameraToPlayGame();
-    }
-    public void PlayGoHomeUI()
-    {
-        isGameStart = false;
-        RestartGame();
-    }
-    public void GoSkinUI()
-    {
-        goShopUI.SetActive(false);
-        camSkinUI.SetActive(true);
-        player.SetDance();
-        player.SaveSkinCur();
-        player.AutoSetChangeTab(0);
-        camManager.MoveCameraToSkinUI(1);
-    }
-    public void SkinUIGoHomeUI()
-    {
-        goShopUI.SetActive(true);
-        camSkinUI.SetActive(false);
-        player.SetIdle();
-        player.LoadSkinCur();
-        camManager.MoveCameraToSkinUI(-1);
-    }
-    public void GoWeaponUI()
-    {
-        goShopUI.SetActive(false);
-        camWeaponUI.SetActive(true);
-        player.gameObject.SetActive(false);
-    }
+
+    //UI Weapon Shop
     public void WeaponUIGoHomeUI()
     {
         goShopUI.SetActive(true);
         camWeaponUI.SetActive(false);
+        player.ReadyOpenWeaponUI();
+        weaponUI.SetActive(false);
         player.gameObject.SetActive(true);
+    }
+    public void SwitchTabWerponUI(int indexTab)
+    {
+        tabWeaponUI[Mathf.Clamp(indexTab - 1, 0, tabWeaponUI.Length - 1)].SetActive(false);
+        tabWeaponUI[Mathf.Clamp(indexTab + 1, 0, tabWeaponUI.Length - 1)].SetActive(false);
+        tabWeaponUI[indexTab].SetActive(true);
+    }
+    
+    //UI Skin Shop
+    public void SkinUIGoHomeUI()
+    {
+        goShopUI.SetActive(true);
+        camSkinUI.SetActive(false);
+        skinUI.SetActive(false);
+        player.SetIdle();
+        player.LoadSkinCur();
+        camManager.MoveCameraToSkinUI(-1);
     }
     public void SwitchTabSkinUI(int indexTab)
     {
-        numberTabSkin = indexTab;
-        SwitchChooseSkin(0);
+        indexTabSkinCur = indexTab;
         foreach (GameObject tab in tabSkinUI)
         {
             tab.SetActive(false);
@@ -213,46 +336,38 @@ public class GameManager : MonoBehaviour
         }
         tabIconSkinUI[indexTab].enabled = false;
     }
-
-    public void SwitchTabWerponUI(int indexTab)
-    {
-        tabWeaponUI[Mathf.Clamp(indexTab - 1, 0, tabWeaponUI.Length - 1)].SetActive(false);
-        tabWeaponUI[Mathf.Clamp(indexTab + 1, 0, tabWeaponUI.Length - 1)].SetActive(false);
-        tabWeaponUI[indexTab].SetActive(true);
-    }
-
     public void SwitchChooseSkin(int indexChoose)
     {
-        if (numberTabSkin == 0)
+        if (indexChoose < 0)
+        {
+            indexChoose = 0;
+        }
+        if (indexTabSkinCur == 0)
         {
             foreach (Image hair in isChooseHairs)
-            {
                 hair.enabled = false;
-            }
+
             isChooseHairs[indexChoose].enabled = true;
         }
-        else if (numberTabSkin == 1)
+        else if (indexTabSkinCur == 1)
         {
             foreach (Image pant in isChoosePants)
-            {
                 pant.enabled = false;
-            }
+
             isChoosePants[indexChoose].enabled = true;
         }
-        else if (numberTabSkin == 2)
+        else if (indexTabSkinCur == 2)
         {
             foreach (Image shield in isChooseShield)
-            {
                 shield.enabled = false;
-            }
+
             isChooseShield[indexChoose].enabled = true;
         }
         else
         {
             foreach (Image set in isChooseSet)
-            {
                 set.enabled = false;
-            }
+
             isChooseSet[indexChoose].enabled = true;
         }
     }
@@ -305,5 +420,33 @@ public class GameManager : MonoBehaviour
     public bool GetIsStartGame()
     {
         return isGameStart;
+    }
+    public int GetGold()
+    {
+        return gold;
+    }
+    public void SetGold(int i) 
+    {
+        gold += i;
+    }
+    public PlayerManager GetPlayer()
+    {
+        return player;
+    }
+    public DataPlayer GetDataPlayer()
+    {
+        return dataPlayer;
+    }
+    public GameObject[] GetWeapons()
+    {
+        return wepons;
+    }
+    public GameObject[] GetTabWeaponUI()
+    {
+        return tabWeaponUI;
+    }
+    public void SetNumGoldText(int i)
+    {
+        numGoldHome.text = i.ToString();
     }
 }

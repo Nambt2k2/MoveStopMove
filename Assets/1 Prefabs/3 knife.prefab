@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &6695545900332913390
+--- !u!1 &174938825805286135
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,25 +8,25 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6314199685986437204}
-  - component: {fileID: 6921839921918756849}
-  - component: {fileID: 5182420469613409083}
-  - component: {fileID: 5776484810338316218}
-  - component: {fileID: 3802533001744429308}
+  - component: {fileID: 659303747741814861}
+  - component: {fileID: 4506285556928552936}
+  - component: {fileID: 1832258746859121442}
+  - component: {fileID: 8805635934474893086}
+  - component: {fileID: 199484737422645593}
   m_Layer: 0
-  m_Name: 3 Hammer
+  m_Name: 3 knife
   m_TagString: Weapon
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6314199685986437204
+--- !u!4 &659303747741814861
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6695545900332913390}
+  m_GameObject: {fileID: 174938825805286135}
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 19.5, y: 19.5, z: 19.5}
@@ -35,21 +35,21 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!33 &6921839921918756849
+--- !u!33 &4506285556928552936
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6695545900332913390}
-  m_Mesh: {fileID: 3174812724623785705, guid: 90389cac50942cb4ca38583e6531094a, type: 3}
---- !u!23 &5182420469613409083
+  m_GameObject: {fileID: 174938825805286135}
+  m_Mesh: {fileID: -3669228104775074923, guid: ecd6cb62ed8350e498f9e25d15d9caa3, type: 3}
+--- !u!23 &1832258746859121442
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6695545900332913390}
+  m_GameObject: {fileID: 174938825805286135}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -64,7 +64,7 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 01671e52dcaca1f43a892d03f17817cc, type: 2}
-  - {fileID: 2100000, guid: b775a35f12dc0a047b3312007ca725da, type: 2}
+  - {fileID: 2100000, guid: e70a6ff4fdb7d524ea6b79916c2b2432, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -86,26 +86,26 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &5776484810338316218
+--- !u!65 &8805635934474893086
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6695545900332913390}
+  m_GameObject: {fileID: 174938825805286135}
   m_Material: {fileID: 0}
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.009686109, y: 0.025129162, z: 0.0060103815}
-  m_Center: {x: -0.00021447147, y: -0.00064934045, z: 0.000000007713636}
---- !u!114 &3802533001744429308
+  m_Size: {x: 0.00425167, y: 0.023034053, z: 0.0019669584}
+  m_Center: {x: -0.0000026705673, y: -0.000034971636, z: -4.9697673e-19}
+--- !u!114 &199484737422645593
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6695545900332913390}
+  m_GameObject: {fileID: 174938825805286135}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5b458d5b11676145b95b75d76e7f507, type: 3}
@@ -113,6 +113,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   character: {fileID: 0}
   isKillEnemy: 0
-  meshWeapon: {fileID: 5182420469613409083}
-  colliWeapon: {fileID: 5776484810338316218}
+  meshWeapon: {fileID: 1832258746859121442}
+  colliWeapon: {fileID: 8805635934474893086}
   timeLife: 0

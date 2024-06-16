@@ -7,7 +7,7 @@ public class FollowCamera : MonoBehaviour
     [SerializeField] Transform targetObject;
     [SerializeField] Camera camCheckEnemy, camFollowPlayer;
     [SerializeField] Animator camFollowAnimator, camCheckEnemyAnimator;
-     [SerializeField] Vector3 cameraOffset;
+    [SerializeField] Vector3 cameraOffset;
 
     [SerializeField] Image[] dirEnemys;
 
