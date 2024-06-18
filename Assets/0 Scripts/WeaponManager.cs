@@ -40,7 +40,7 @@ public class WeaponManager : MonoBehaviour
 
     IEnumerator DeactiveAfterTime()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(timeLife);
         gameObject.SetActive(false);
     }
 
@@ -54,7 +54,6 @@ public class WeaponManager : MonoBehaviour
         return character.gameObject;
     }
 
-
     public bool IsKillEnemy()
     {
         return isKillEnemy;
@@ -63,5 +62,12 @@ public class WeaponManager : MonoBehaviour
     public void ResertIsKillEnemy()
     {
         isKillEnemy = false;
+    }
+
+    public enum TypeAtk
+    {
+        Straight,
+        Rotation,
+        Return
     }
 }

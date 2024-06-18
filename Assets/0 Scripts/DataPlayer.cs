@@ -67,18 +67,24 @@ public class DataPlayer : MonoBehaviour
     {
         [SerializeField] string namePlayer;
         [SerializeField] int gold, indexWeaponOpen, indexWeaponCur;
-        [SerializeField] int indexHairCur, indexPantCur, indexShiels, indexSetCur;
+        [SerializeField] int indexHairCur, indexPantCur, indexShieldCur, indexSetCur;
         [SerializeField] List<int> hairsBought, pantsBought, shieldsBought, setsBought;
         
 
         public SaveDataPlayer()
         {
-            namePlayer = GameManager.Instance.GetPlayer().GetNamePlayer();
             gold = GameManager.Instance.GetGold();
+            namePlayer = GameManager.Instance.GetPlayer().GetNamePlayer();
             indexWeaponOpen = GameManager.Instance.GetPlayer().GetIndexWeaponOpen();
             indexWeaponCur = GameManager.Instance.GetPlayer().GetIndexWeaponCur();
             indexHairCur = GameManager.Instance.GetPlayer().GetHairCur();
             hairsBought = GameManager.Instance.GetPlayer().GetHairsBought();
+            indexPantCur = GameManager.Instance.GetPlayer().GetPantCur();
+            pantsBought = GameManager.Instance.GetPlayer().GetPantsBought();
+            indexShieldCur = GameManager.Instance.GetPlayer().GetShieldCur();
+            shieldsBought = GameManager.Instance.GetPlayer().GetShieldsBought();
+            indexSetCur = GameManager.Instance.GetPlayer().GetSetCur();
+            setsBought = GameManager.Instance.GetPlayer().GetSetsBought();
         }
 
         public string GetNamePlayer()
@@ -116,6 +122,18 @@ public class DataPlayer : MonoBehaviour
         public int GetIndexHairCur()
         {
             return indexHairCur;
+        }
+        public int GetIndexPantCur()
+        {
+            return indexPantCur;
+        }
+        public int GetIndexShieldCur()
+        {
+            return indexShieldCur;
+        }
+        public int GetIndexSetCur()
+        {
+            return indexSetCur;
         }
     }
 }

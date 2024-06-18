@@ -115,4 +115,4 @@ MonoBehaviour:
   isKillEnemy: 0
   meshWeapon: {fileID: 5182420469613409083}
   colliWeapon: {fileID: 5776484810338316218}
-  timeLife: 0
+  timeLife: 1

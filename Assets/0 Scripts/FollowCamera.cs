@@ -101,4 +101,8 @@ public class FollowCamera : MonoBehaviour
         }
         transform.localEulerAngles = Vector3.right * to;
     }
+    public Camera GetCamCheckEnemy()
+    {
+        return camCheckEnemy;
+    }
 }

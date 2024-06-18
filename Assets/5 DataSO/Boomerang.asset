@@ -18,3 +18,4 @@ MonoBehaviour:
   range: 5
   atkSpeed: 0
   attribute: +5 Range*2
+  typeAtk: 2

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -9,22 +10,28 @@ public class GameManager : MonoBehaviour
     [SerializeField] DataPlayer dataPlayer;
     [SerializeField] FollowCamera camManager;
     [SerializeField] PlayerManager player;
+    [SerializeField] EnemyManager[] enemys;
+    [SerializeField] PlayerAnimation animPlayer;
     [SerializeField] GameObject[] characters;
     [SerializeField] Transform[] posCharacters;
     [SerializeField] CapsuleCollider[] colliCharacters;
-    [SerializeField] EnemyManager[] enemys;
     [SerializeField] Material[] colorBodys, colorPants;
     [SerializeField] int alive, sumNumberCharacter, gold;
     [SerializeField] float countDownSpawnEnemy;
-    [SerializeField] bool isGameOver, isGameStart;
+    [SerializeField] bool isGameOver, isGameStart, isGameWin;
     [Header("HomeUI--------------")]
     [SerializeField] GameObject homeUI, goShopUI;
     [SerializeField] RawImage onSoundHome, offSoundHome, onVibrationHome, offVibrationHome;
     [SerializeField] Text numGoldHome;
     [Header("GamePlayUI----------")]
-    [SerializeField] GameObject gamePlayUI, settingUI, settingBtnUI, numAliveUI;
-    [SerializeField] RawImage onSound, offSound, onVibration, offVibration;
+    [SerializeField] GameObject gamePlayUI, settingUI, settingBtnUI, numAliveUI, infinityUI;
+    [SerializeField] RawImage onSound, offSound, onVibration, offVibration, iconHand;
     [SerializeField] Text numAlive;
+    [SerializeField] int speedInfinityUI;
+    Coroutine runInfinityWait = null;
+    [Header("GameWinUI-----------")]
+    [SerializeField] GameObject gameWinUI;
+    [SerializeField] Text namePlayer, numGoldGameWin;
     [Header("GameOverUI----------")]
     [SerializeField] GameObject gameOverUI, reviveNowUI, rankInfoUI, touchToContinueUI;
     [SerializeField] RawImage loadCircleGameOver;
@@ -83,7 +90,6 @@ public class GameManager : MonoBehaviour
         this.gold = dataPlayer.LoadGame().GetGold();
         numGoldHome.text = this.gold.ToString();
     }
-
     void Start()
     {
         for (int i = 0; i < Constant.NUMCHARACTER1TURN - 1; i++)
@@ -92,10 +98,33 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         SpawnEnemy();
-
+        if (player.GetIsMove())
+        {
+            infinityUI.SetActive(false);
+            StopCoroutine(runInfinityWait);
+        }
         if (isGameOver)
         {
+            infinityUI.SetActive(false);
+            StopCoroutine(runInfinityWait);
             GameOverSquence();
+        }
+        if (alive == 1 && player.enabled == true)
+        {
+            GameWinSquence();
+        }
+    }
+
+    IEnumerator RunInfinity()   
+    {
+        float elapsed = 0f;
+        float duration = 30f;
+
+        while (elapsed < duration)
+        {
+            iconHand.transform.localPosition = new Vector3(Mathf.Cos(elapsed), Mathf.Sin(elapsed * 2) / 2) * speedInfinityUI - new Vector3(25, 38);
+            elapsed += Time.deltaTime;
+            yield return null;
         }
     }
 
@@ -156,7 +185,9 @@ public class GameManager : MonoBehaviour
             onVibration.enabled = false;
             offVibration.enabled = true;
         }
-
+        animPlayer.LoadWeaponData();
+        infinityUI.SetActive(true);
+        runInfinityWait = StartCoroutine(RunInfinity());
         camManager.MoveCameraToPlayGame();
     }
     public void GoWeaponUI()
@@ -172,9 +203,7 @@ public class GameManager : MonoBehaviour
         camSkinUI.SetActive(true);
         skinUI.SetActive(true);
         player.SetDance();
-        player.SaveSkinCur();
         SwitchTabSkinUI(0);
-        SwitchChooseSkin(player.GetHairCur());
         player.AutoSetChangeTab(0);
         camManager.MoveCameraToSkinUI(1);
     }
@@ -248,6 +277,15 @@ public class GameManager : MonoBehaviour
         isGameStart = false;
         dataPlayer.SaveGame();
         RestartGame();
+    }
+
+    //UI Game Win
+    void GameWinSquence()
+    {
+        isGameWin = true;
+        numGoldGameWin.text = (player.GetLevel() * 2).ToString();
+        namePlayer.text = player.GetNamePlayer();
+        gameWinUI.SetActive(true);
     }
 
     //UI Game Over
@@ -342,28 +380,28 @@ public class GameManager : MonoBehaviour
         {
             indexChoose = 0;
         }
-        if (indexTabSkinCur == 0)
+        if (indexTabSkinCur == (int)SkinOrder.Hair)
         {
             foreach (Image hair in isChooseHairs)
                 hair.enabled = false;
 
             isChooseHairs[indexChoose].enabled = true;
         }
-        else if (indexTabSkinCur == 1)
+        else if (indexTabSkinCur == (int)SkinOrder.Pant)
         {
             foreach (Image pant in isChoosePants)
                 pant.enabled = false;
 
             isChoosePants[indexChoose].enabled = true;
         }
-        else if (indexTabSkinCur == 2)
+        else if (indexTabSkinCur == (int)SkinOrder.Shield)
         {
             foreach (Image shield in isChooseShield)
                 shield.enabled = false;
 
             isChooseShield[indexChoose].enabled = true;
         }
-        else
+        else if (indexTabSkinCur == (int)SkinOrder.Set)
         {
             foreach (Image set in isChooseSet)
                 set.enabled = false;
@@ -448,5 +486,13 @@ public class GameManager : MonoBehaviour
     public void SetNumGoldText(int i)
     {
         numGoldHome.text = i.ToString();
+    }
+    public bool GetIsGameWin()
+    {
+        return isGameWin;
+    }
+    public GameObject GetInfinityUI()
+    {
+        return infinityUI;
     }
 }
