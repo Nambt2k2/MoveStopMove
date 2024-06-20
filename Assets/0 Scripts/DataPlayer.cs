@@ -6,18 +6,19 @@ using UnityEngine;
 public class DataPlayer : MonoBehaviour
 {
     string saveName = "SaveData";
+    string saveName1 = "SaveData1";
     [SerializeField] WeaponSO[] weaponDatas;
     [SerializeField] SetSO[] setDatas;
 
-    void SaveData(string dataToSave)
+    void SaveData(string dataToSave, string s)
     {
-        var fullPath = Path.Combine(Application.persistentDataPath, saveName);
+        var fullPath = Path.Combine(Application.persistentDataPath, s);
         File.WriteAllText(fullPath, dataToSave);
     }
-    string LoadData()
+    string LoadData(string s)
     {
         string data = "";
-        var fullPath = Path.Combine(Application.persistentDataPath, saveName);
+        var fullPath = Path.Combine(Application.persistentDataPath, s);
         data = File.ReadAllText(fullPath);
         return data;
     }
@@ -25,12 +26,18 @@ public class DataPlayer : MonoBehaviour
     {
         SaveDataPlayer data = new SaveDataPlayer();
         var dataToSave = JsonUtility.ToJson(data);
-        SaveData(dataToSave);
+        SaveData(dataToSave, saveName);
+    }
+    public void SaveColorWeeaponCustom()
+    {
+        SaveDataColorWeeaponCustom data = new SaveDataColorWeeaponCustom();
+        var dataToSave = JsonUtility.ToJson(data);
+        SaveData(dataToSave, saveName1);
     }
     public SaveDataPlayer LoadGame()
     {
         string dataToLoad = "";
-        dataToLoad = LoadData();
+        dataToLoad = LoadData(saveName);
         if (String.IsNullOrEmpty(dataToLoad) == false)
         {
             SaveDataPlayer data = JsonUtility.FromJson<SaveDataPlayer>(dataToLoad);
@@ -38,7 +45,18 @@ public class DataPlayer : MonoBehaviour
         }
         return null;
     }
-    
+    public SaveDataColorWeeaponCustom LoadColorWeeaponCustom()
+    {
+        string dataToLoad = "";
+        dataToLoad = LoadData(saveName1);
+        if (String.IsNullOrEmpty(dataToLoad) == false)
+        {
+            SaveDataColorWeeaponCustom data = JsonUtility.FromJson<SaveDataColorWeeaponCustom>(dataToLoad);
+            return data;
+        }
+        return null;
+    }
+
     public WeaponSO GetWeaponData(int index)
     {
         foreach (WeaponSO w in weaponDatas)
@@ -66,7 +84,7 @@ public class DataPlayer : MonoBehaviour
     public class SaveDataPlayer
     {
         [SerializeField] string namePlayer;
-        [SerializeField] int gold, indexWeaponOpen, indexWeaponCur;
+        [SerializeField] int gold, indexWeaponOpen, indexWeaponCur, indexSkinWeaponCur;
         [SerializeField] int indexHairCur, indexPantCur, indexShieldCur, indexSetCur;
         [SerializeField] List<int> hairsBought, pantsBought, shieldsBought, setsBought;
         
@@ -85,6 +103,7 @@ public class DataPlayer : MonoBehaviour
             shieldsBought = GameManager.Instance.GetPlayer().GetShieldsBought();
             indexSetCur = GameManager.Instance.GetPlayer().GetSetCur();
             setsBought = GameManager.Instance.GetPlayer().GetSetsBought();
+            indexSkinWeaponCur = GameManager.Instance.GetIndexSkinWeaponCur();
         }
 
         public string GetNamePlayer()
@@ -135,5 +154,26 @@ public class DataPlayer : MonoBehaviour
         {
             return indexSetCur;
         }
+        public int GetIndexSkinWeaponCur()
+        {
+            return indexSkinWeaponCur;
+        }
     }
+
+    [Serializable]
+    public class SaveDataColorWeeaponCustom
+    {
+        [SerializeField] List<int> weaponColorCustoms;
+
+        public SaveDataColorWeeaponCustom()
+        {
+            weaponColorCustoms = GameManager.Instance.GetWeaponCustoms();
+        }
+
+        public List<int> GetWeaponColorCustoms()
+        {
+            return weaponColorCustoms;
+        }
+    }
+
 }

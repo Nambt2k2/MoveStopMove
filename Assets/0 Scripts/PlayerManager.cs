@@ -7,38 +7,39 @@ public class PlayerManager : MonoBehaviour
     [Header("Move-----------")]
     [SerializeField] DynamicJoystick joytick;
     [Header("Weapon---------")]
+    [SerializeField] bool isAtkReturnPlayer;
     [SerializeField] Transform holdWeapon, posWeapon;
-    [SerializeField] GameObject[] weaponPrefab;
     [SerializeField] GameObject weapon;
     [SerializeField] WeaponManager weaponController;
-    [SerializeField] bool isAtkReturnPlayer;
+    [SerializeField] GameObject[] weaponPrefab;
+    [SerializeField] MeshRenderer[] holdWeapons;
     [Header("Player---------")]
+    [SerializeField] bool isMove, inRangeAtk, canAtk;
+    [SerializeField] int moveSpeed, level, goldBeforeDie;
+    [SerializeField] float angle, angleAtkRotation, rangeAtk;
     [SerializeField] Rigidbody rigid;
     [SerializeField] CapsuleCollider colli;
     [SerializeField] GameObject circleRangeAtk, infoPrefab, info;
     [SerializeField] Transform posInfo;
-    [SerializeField] bool isMove, inRangeAtk, canAtk;
-    [SerializeField] int moveSpeed, level;
-    [SerializeField] float angle, angleAtkRotation, rangeAtk;
     [Header("PlayerUI--------")]
     [SerializeField] InputField inputNamePlayer;
     [SerializeField] Text namePlayer, textLevel;
-    [Header("ShopWeaponUI----")]
+    [Header("PlayerWeapon----")]
     [SerializeField] int indexWeaponCur, indexWeaponOpen;
     [SerializeField] Text[] weaponBuys, weaponUses;
-    [Header("PlayerSkin-----")]
+    [Header("PlayerSkin------")]
+    [SerializeField] int pantCur, hairCur, shieldCur, setCur, indexSkinChoose, indexSkinSetChoose;
     [SerializeField] SkinnedMeshRenderer body, pant;
     [SerializeField] Material pantOrigin, bobyOrigin;
-    [SerializeField] GameObject[] hairs, shields, sets;
     [SerializeField] Text hairBuy, hairUse, pantBuy, pantUse, shieldBuy, shieldUse, setBuy, setUse;
-    [SerializeField] int pantCur, hairCur, shieldCur, setCur, indexSkinChoose, indexSkinSetChoose;
+    [SerializeField] GameObject[] hairs, shields, sets;
     [SerializeField] List<int> hairsBought, pantsBought, shieldsBought, setsBought;
-    [Header("Enemys---------")]
-    [SerializeField] float[] distances;
+    [Header("Enemys----------")]
     [SerializeField] Vector3 posEnemy, directionEnemy;
-    [Header("Camera---------")]
+    [SerializeField] float[] distances;
+    [Header("Camera----------")]
     [SerializeField] FollowCamera cam;
-    [Header("Animation------")]
+    [Header("Animation-------")]
     [SerializeField] PlayerAnimation anim;
     [SerializeField] StateAnimation stateAnim = StateAnimation.Idle;
 
@@ -118,6 +119,14 @@ public class PlayerManager : MonoBehaviour
             GameManager.Instance.SetNumRank(GameManager.Instance.GetNumAlive());
             GameManager.Instance.SetNameEnemyKillPlayer(
                 other.gameObject.GetComponent<WeaponManager>().getCharacter().GetComponent<EnemyManager>().GetNameEnemy());
+            if (!GameManager.Instance.GetIsRevivePlayer())
+            {
+                goldBeforeDie = level * 2;
+            }
+            else
+            {
+                GameManager.Instance.SetGold(-goldBeforeDie);
+            }
             GameManager.Instance.SetNumGold(level * 2);
         }
     }
@@ -141,6 +150,14 @@ public class PlayerManager : MonoBehaviour
         {
             isMove = false;
         }
+    }
+    
+    public void RevivePlayer()
+    {
+        transform.position = new Vector3(Random.Range(-15, 15), 50.1f, Random.Range(-15, 15));
+        enabled = true;
+        colli.enabled = true;
+        circleRangeAtk.SetActive(true);
     }
 
     //atk
@@ -231,7 +248,7 @@ public class PlayerManager : MonoBehaviour
             weapon.transform.position = posWeapon.position;
             weapon.SetActive(true);
         }
-        if (Vector3.SqrMagnitude(posWeapon.position - weapon.transform.position) > rangeAtk * rangeAtk * 1.5f)
+        if (Vector3.SqrMagnitude(posWeapon.position - weapon.transform.position) > rangeAtk * rangeAtk * 1.2f)
         {
             isAtkReturnPlayer = true;
         }
@@ -379,10 +396,16 @@ public class PlayerManager : MonoBehaviour
     }
     public void UseWeapon(int index)
     {
-        if (indexWeaponCur != index && index <= indexWeaponOpen)
+        if (indexWeaponCur != index || 
+            GameManager.Instance.GetIndexSkinWeaponCur() != GameManager.Instance.GetIndexSkinWeaponChoose()
+            && index <= indexWeaponOpen)
         {
             indexWeaponCur = index;
-            ReadyOpenWeaponUI();
+            GameManager.Instance.SetIndexSkinWeaponCur(GameManager.Instance.GetIndexSkinWeaponChoose());
+            GameManager.Instance.WeaponUIGoHomeUI();
+        }
+        if (weaponUses[index].text == Constant.EQUIPPED)
+        {
             GameManager.Instance.WeaponUIGoHomeUI();
         }
     }
@@ -396,9 +419,10 @@ public class PlayerManager : MonoBehaviour
             }
             weaponUses[i].gameObject.SetActive(true);
             weaponUses[i].text = Constant.SELECT;
-            GameManager.Instance.GetWeapons()[i].SetActive(false);
+            holdWeapons[i].gameObject.SetActive(false);
         }
-        GameManager.Instance.GetWeapons()[indexWeaponCur].SetActive(true);
+        holdWeapons[indexWeaponCur].gameObject.SetActive(true);
+        ChangeColorWeaponCustom();
         weaponUses[indexWeaponCur].text = Constant.EQUIPPED;
 
         int length = GameManager.Instance.GetTabWeaponUI().Length;
@@ -407,6 +431,12 @@ public class PlayerManager : MonoBehaviour
             GameManager.Instance.GetTabWeaponUI()[i].SetActive(false);
         }
         GameManager.Instance.GetTabWeaponUI()[indexWeaponCur].SetActive(true);
+    }
+    public void ChangeColorWeaponCustom()
+    {
+        holdWeapons[indexWeaponCur].materials = GameManager.Instance.GetSkinWeapon()
+            [GameManager.Instance.GetIndexSkinWeaponCur() + indexWeaponCur * 5].materials;
+        weaponPrefab[indexWeaponCur].GetComponent<MeshRenderer>().materials = holdWeapons[indexWeaponCur].materials;
     }
     public void BuyHair()
     {
@@ -437,6 +467,7 @@ public class PlayerManager : MonoBehaviour
                     hairCur = indexSkinChoose;
                     SetHair(hairCur);
                     hairUse.text = Constant.UNEQUIP;
+                    setCur = pantCur = shieldCur =-1;
                 }
                 else
                 {
@@ -500,6 +531,7 @@ public class PlayerManager : MonoBehaviour
                     pantCur = indexSkinChoose;
                     SetPant(pantCur);
                     pantUse.text = Constant.UNEQUIP;
+                    setCur = hairCur = shieldCur = -1;
                 }
                 else
                 {
@@ -563,6 +595,7 @@ public class PlayerManager : MonoBehaviour
                     shieldCur = indexSkinChoose;
                     SetShield(shieldCur);
                     shieldUse.text = Constant.UNEQUIP;
+                    setCur = hairCur = pantCur = -1;
                 }
                 else
                 {
@@ -626,6 +659,7 @@ public class PlayerManager : MonoBehaviour
                     setCur = indexSkinSetChoose;
                     SetSet(setCur);
                     setUse.text = Constant.UNEQUIP;
+                    hairCur = pantCur = shieldCur = -1;
                 }
                 else
                 {
@@ -825,7 +859,7 @@ public class PlayerManager : MonoBehaviour
         else if (index == 1)
         {
             LoadSkinOrigin();
-            pant.material = GameManager.Instance.GetPant()[10];
+            pant.material = GameManager.Instance.GetBody()[5];
             body.material = GameManager.Instance.GetBody()[5];
             hairs[4].SetActive(true);
             sets[2].SetActive(true);
@@ -835,5 +869,29 @@ public class PlayerManager : MonoBehaviour
         {
             LoadSkinCur();  
         }
+    }
+    public Text[] GetTextWeaponUses()
+    {
+        return weaponUses;
+    }
+    public int GetIndexSkinCur()
+    {
+        if (hairCur >= 0)
+        {
+            return (int) SkinOrder.Hair;
+        }
+        if (pantCur >= 0)
+        {
+            return (int)SkinOrder.Pant;
+        }
+        if (shieldCur >= 0)
+        {
+            return (int)SkinOrder.Shield;
+        }
+        if (setCur >= 0)
+        {
+            return (int)SkinOrder.Set;
+        }
+        return (int)SkinOrder.Hair;
     }
 }

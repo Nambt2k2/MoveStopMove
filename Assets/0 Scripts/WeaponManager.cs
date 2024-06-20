@@ -3,11 +3,11 @@ using System.Collections;
 
 public class WeaponManager : MonoBehaviour
 {
-    [SerializeField] Transform character;
     [SerializeField] bool isKillEnemy;
+    [SerializeField] float timeLife;
+    [SerializeField] Transform character;
     [SerializeField] MeshRenderer meshWeapon;
     [SerializeField] BoxCollider colliWeapon;
-    [SerializeField] float timeLife;
     Coroutine deactiveWait = null;
 
     void OnEnable()
