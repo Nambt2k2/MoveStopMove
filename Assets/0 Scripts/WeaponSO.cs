@@ -8,5 +8,5 @@ public class WeaponSO : ScriptableObject
     public int cost;
     public int range, atkSpeed;
     public string attribute;
-    public WeaponManager.TypeAtk typeAtk;
+    public TypeAtk typeAtk;
 }

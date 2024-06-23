@@ -47,7 +47,7 @@ public class EnemyManager : MonoBehaviour
 
     void Update()
     {
-        if (GameManager.Instance.GetIsStartGame())
+        if (GameManager.Instance.IsStartGame)
         {
             Move();
             CheckRangeAtk();
@@ -60,7 +60,7 @@ public class EnemyManager : MonoBehaviour
         UpdateState();
         anim.UpdateAnimation(stateAnim);
         
-        if (GameManager.Instance.GetIsGameOver() || !GameManager.Instance.GetIsStartGame())
+        if (GameManager.Instance.IsGameOver || !GameManager.Instance.IsStartGame)
         {
             arrowSelf.gameObject.SetActive(false);
         }
@@ -94,7 +94,7 @@ public class EnemyManager : MonoBehaviour
     void Move()
     {
         info.transform.position = posInfo.position;
-        if (!inRangeAtk && GameManager.Instance.GetNumAlive() > 1)
+        if (!inRangeAtk && GameManager.Instance.Alive > 1)
         {
             directionEnemy = posEnemy - transform.position;
             angle = Mathf.Atan2(directionEnemy.x, directionEnemy.z) * Mathf.Rad2Deg;
@@ -128,8 +128,8 @@ public class EnemyManager : MonoBehaviour
     }
     void RandomSkinEnemy()
     {
-        body.material = GameManager.Instance.GetBody()[Random.Range(0, GameManager.Instance.GetBody().Length)];
-        pant.material = GameManager.Instance.GetPant()[Random.Range(0, GameManager.Instance.GetPant().Length)];
+        body.material = GameManager.Instance.ColorBodys[Random.Range(0, GameManager.Instance.ColorBodys.Length)];
+        pant.material = GameManager.Instance.ColorPants[Random.Range(0, GameManager.Instance.ColorPants.Length)];
     }
 
     //atk
@@ -137,9 +137,9 @@ public class EnemyManager : MonoBehaviour
     {
         for (int i = 0; i < 10; i++)
         {
-            if (GameManager.Instance.GetCharacter()[i].activeSelf && GameManager.Instance.GetColliCharacter()[i].enabled)
+            if (GameManager.Instance.Characters[i].activeSelf && GameManager.Instance.ColliCharacter[i].enabled)
             {
-                distances[i] = (GameManager.Instance.GetPosEnemy()[i].position - transform.position).sqrMagnitude;
+                distances[i] = (GameManager.Instance.PosEnemy[i].position - transform.position).sqrMagnitude;
             }
             else
             {
@@ -173,7 +173,7 @@ public class EnemyManager : MonoBehaviour
             {
                 if (min == distances[i])
                 {
-                    posEnemy = GameManager.Instance.GetPosEnemy()[i].position;
+                    posEnemy = GameManager.Instance.PosEnemy[i].position;
                 }
             }
         }
@@ -183,7 +183,7 @@ public class EnemyManager : MonoBehaviour
             {
                 if (min == distances[i])
                 {
-                    posEnemy = GameManager.Instance.GetPosEnemy()[i].position;
+                    posEnemy = GameManager.Instance.PosEnemy[i].position;
                     break;
                 }
             }

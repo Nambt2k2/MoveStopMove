@@ -40,7 +40,8 @@ public class DataPlayer : MonoBehaviour
         dataToLoad = LoadData(saveName);
         if (String.IsNullOrEmpty(dataToLoad) == false)
         {
-            SaveDataPlayer data = JsonUtility.FromJson<SaveDataPlayer>(dataToLoad);
+            SaveDataPlayer data = new SaveDataPlayer();
+            data = JsonUtility.FromJson<SaveDataPlayer>(dataToLoad);
             return data;
         }
         return null;
@@ -87,76 +88,118 @@ public class DataPlayer : MonoBehaviour
         [SerializeField] int gold, indexWeaponOpen, indexWeaponCur, indexSkinWeaponCur;
         [SerializeField] int indexHairCur, indexPantCur, indexShieldCur, indexSetCur;
         [SerializeField] List<int> hairsBought, pantsBought, shieldsBought, setsBought;
-        
 
         public SaveDataPlayer()
         {
-            gold = GameManager.Instance.GetGold();
-            namePlayer = GameManager.Instance.GetPlayer().GetNamePlayer();
-            indexWeaponOpen = GameManager.Instance.GetPlayer().GetIndexWeaponOpen();
-            indexWeaponCur = GameManager.Instance.GetPlayer().GetIndexWeaponCur();
-            indexHairCur = GameManager.Instance.GetPlayer().GetHairCur();
-            hairsBought = GameManager.Instance.GetPlayer().GetHairsBought();
-            indexPantCur = GameManager.Instance.GetPlayer().GetPantCur();
-            pantsBought = GameManager.Instance.GetPlayer().GetPantsBought();
-            indexShieldCur = GameManager.Instance.GetPlayer().GetShieldCur();
-            shieldsBought = GameManager.Instance.GetPlayer().GetShieldsBought();
-            indexSetCur = GameManager.Instance.GetPlayer().GetSetCur();
-            setsBought = GameManager.Instance.GetPlayer().GetSetsBought();
-            indexSkinWeaponCur = GameManager.Instance.GetIndexSkinWeaponCur();
+            if (GameManager.Instance == null)
+            {
+                return;
+            }
+            gold = GameManager.Instance.Gold;
+            namePlayer = GameManager.Instance.Player.NamePlayer;
+            indexWeaponOpen = GameManager.Instance.Player.IndexWeaponOpen;
+            indexWeaponCur = GameManager.Instance.Player.IndexWeaponCur;
+            indexHairCur = GameManager.Instance.Player.HairCur;
+            hairsBought = GameManager.Instance.Player.HairsBought;
+            indexPantCur = GameManager.Instance.Player.PantCur;
+            pantsBought = GameManager.Instance.Player.PantsBought;
+            indexShieldCur = GameManager.Instance.Player.ShieldCur;
+            shieldsBought = GameManager.Instance.Player.ShieldsBought;
+            indexSetCur = GameManager.Instance.Player.SetCur;
+            setsBought = GameManager.Instance.Player.SetsBought;
+            indexSkinWeaponCur = GameManager.Instance.IndexSkinWeaponCur;
         }
 
-        public string GetNamePlayer()
+        public string NamePlayer
         {
-            return namePlayer;
+            get
+            {
+                return namePlayer;
+            }
         }
-        public int GetGold()
+        public int Gold
         {
-            return gold;
+            get
+            {
+                return gold;
+            }
         }
-        public int GetIndexWeaponOpen()
+        public int IndexWeaponOpen
         {
-            return indexWeaponOpen;
+            get
+            {
+                return indexWeaponOpen;
+            }
         }
-        public int GetIndexWeaponCur()
+        public int IndexWeaponCur
         {
-            return indexWeaponCur;
+            get
+            {
+                return indexWeaponCur;
+            } 
         }
-        public List<int> GetHairBought()
+        public List<int> HairsBought
         {
-            return hairsBought;
+            get
+            {
+                return hairsBought;
+            }
         }
-        public List<int> GetPantBought()
+        public List<int> PantsBought
         {
-            return pantsBought;
+            get
+            {
+                return pantsBought;
+            }
         }
-        public List<int> GetShieldBought()
+        public List<int> ShieldsBought
         {
-            return shieldsBought;
+            get
+            {
+                return shieldsBought;
+            }
         }
-        public List<int> GetSetBought()
+        public List<int> SetsBought
         {
-            return setsBought;
+            get
+            {
+                return setsBought;
+            }
         }
-        public int GetIndexHairCur()
+        public int IndexHairCur
         {
-            return indexHairCur;
+            get
+            {
+                return indexHairCur;
+            }
         }
-        public int GetIndexPantCur()
+        public int IndexPantCur
         {
-            return indexPantCur;
+            get
+            {
+                return indexPantCur;
+            }
         }
-        public int GetIndexShieldCur()
+        public int IndexShieldCur
         {
-            return indexShieldCur;
+            get
+            {
+                return indexShieldCur;
+            }
         }
-        public int GetIndexSetCur()
+        public int IndexSetCur
         {
-            return indexSetCur;
+            get
+            {
+                return indexSetCur;
+            }
         }
-        public int GetIndexSkinWeaponCur()
+        public int IndexSkinWeaponCur
         {
-            return indexSkinWeaponCur;
+            get
+            {
+                return indexSkinWeaponCur;
+            }
         }
     }
 
@@ -167,13 +210,15 @@ public class DataPlayer : MonoBehaviour
 
         public SaveDataColorWeeaponCustom()
         {
-            weaponColorCustoms = GameManager.Instance.GetWeaponCustoms();
+            weaponColorCustoms = GameManager.Instance.WeaponCustoms;
         }
 
-        public List<int> GetWeaponColorCustoms()
+        public List<int> WeaponColorCustoms
         {
-            return weaponColorCustoms;
+            get
+            {
+                return weaponColorCustoms;
+            }
         }
     }
-
 }

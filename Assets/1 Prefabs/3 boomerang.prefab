@@ -110,8 +110,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5b458d5b11676145b95b75d76e7f507, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  character: {fileID: 0}
   isKillEnemy: 0
+  timeLife: 2.1
+  character: {fileID: 0}
   meshWeapon: {fileID: 6299175061358517088}
   colliWeapon: {fileID: 975518179463313425}
-  timeLife: 2.1

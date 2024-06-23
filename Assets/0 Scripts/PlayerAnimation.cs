@@ -13,12 +13,12 @@ public class PlayerAnimation : MonoBehaviour
     {
         if (isAtk && timeAtk < Constant.TIMEATK)
         {
-            if (weaponData.typeAtk == WeaponManager.TypeAtk.Straight)
+            if (weaponData.typeAtk == TypeAtk.Straight)
             {
                 player.AtkStraight();
                 timeAtk += Time.deltaTime;
             }
-            else if (weaponData.typeAtk == WeaponManager.TypeAtk.Rotation)
+            else if (weaponData.typeAtk == TypeAtk.Rotation)
             {
                 player.AtkRotation();
                 timeAtk += Time.deltaTime;
@@ -32,7 +32,7 @@ public class PlayerAnimation : MonoBehaviour
 
         if (isAtk && timeAtkReturn < Constant.TIMEATK * 2)
         {
-            if (weaponData.typeAtk == WeaponManager.TypeAtk.Return)
+            if (weaponData.typeAtk == TypeAtk.Return)
             {
                 player.AtkReturn();
                 timeAtkReturn += Time.deltaTime;
@@ -41,7 +41,7 @@ public class PlayerAnimation : MonoBehaviour
             {
                 isAtk = false;
                 timeAtkReturn = 0;
-                player.GetWeapon().SetActive(false);
+                player.Weapon.SetActive(false);
             }
         }
         else
@@ -52,7 +52,7 @@ public class PlayerAnimation : MonoBehaviour
     }
     public void LoadWeaponData()
     {
-        weaponData = GameManager.Instance.GetDataPlayer().GetWeaponData(player.GetIndexWeaponCur());
+        weaponData = GameManager.Instance.DataPlayer.GetWeaponData(player.IndexWeaponCur);
     }
 
     public void UpdateAnimation(StateAnimation stateAnim)

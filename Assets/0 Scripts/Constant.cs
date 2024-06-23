@@ -2,11 +2,13 @@ public class Constant
 {
     public const string WEAPON = "Weapon";
     public const string CHARACTER = "Character";
+    public const string ZOMBIE = "Zombie";
     public const string SELECT = "Select";
     public const string EQUIPPED = "Equipped";
     public const string UNEQUIP = "Unequip";
     public const string SOUND = "Sound";
     public const string VIBRATION = "Vibration";
+    public const string WEAPONDATA = "WeaponData";
     public const float SHRINKCAM = 1.1f;
     public const float ZOOMLEVELUP = 1.08f;
     public const float DISTANCEWEAPONALIVE = 1.6f;

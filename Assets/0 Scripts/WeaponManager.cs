@@ -63,11 +63,4 @@ public class WeaponManager : MonoBehaviour
     {
         isKillEnemy = false;
     }
-
-    public enum TypeAtk
-    {
-        Straight,
-        Rotation,
-        Return
-    }
 }

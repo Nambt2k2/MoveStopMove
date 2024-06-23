@@ -50,9 +50,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] RectTransform[] posUseBtn;
     [Header("SkinShopUI----------")]
     [SerializeField] int indexTabSkinCur;
+    [SerializeField] Text attributeSet;
     [SerializeField] GameObject camSkinUI, skinUI;
     [SerializeField] Image[] tabIconSkinUI, isChoosePants, isChooseHairs, isChooseShield, isChooseSet;
-    [SerializeField] GameObject[] tabSkinUI, hairs, shields;
+    [SerializeField] GameObject[] tabSkinUI, hairs, shields, adsSkinBuyBtn;
+    [SerializeField] RectTransform[] posUseSkinBtn;
 
     void Awake()
     {
@@ -94,15 +96,15 @@ public class GameManager : MonoBehaviour
             offVibrationHome.enabled = true;
         }
 
-        this.gold = dataPlayer.LoadGame().GetGold();
-        indexSkinWeaponCur = dataPlayer.LoadGame().GetIndexSkinWeaponCur();
+        this.gold = dataPlayer.LoadGame().Gold;
+        indexSkinWeaponCur = dataPlayer.LoadGame().IndexSkinWeaponCur;
         numGoldHome.text = this.gold.ToString();
     }
     void Start()
     {
         InitListWeaponCusDefault();
-        weaponCustoms = dataPlayer.LoadColorWeeaponCustom().GetWeaponColorCustoms();
-        for(int i = 0; i <= player.GetIndexWeaponOpen(); i++)
+        weaponCustoms = dataPlayer.LoadColorWeeaponCustom().WeaponColorCustoms;
+        for(int i = 0; i <= player.IndexWeaponOpen; i++)
         {
             for (int j = 0; j < 3; j++)
             {
@@ -125,7 +127,7 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         SpawnEnemy();
-        if (player.GetIsMove())
+        if (player.IsMove)
         {
             infinityUI.SetActive(false);
             StopCoroutine(runInfinityWait);
@@ -144,7 +146,7 @@ public class GameManager : MonoBehaviour
 
     void InitListWeaponCusDefault()
     {
-        for (int i = 0; i <= player.GetIndexWeaponOpen(); i++)
+        for (int i = 0; i <= player.IndexWeaponOpen; i++)
         {
             for (int j = 0; j < 3; j++)
             {
@@ -219,25 +221,28 @@ public class GameManager : MonoBehaviour
         runInfinityWait = StartCoroutine(RunInfinity());
 
         player.SetTextNamePlayer();
-        player.GetInfo().SetActive(true);
+        player.Info.SetActive(true);
         foreach (EnemyManager enemy in enemys)
         {
             enemy.GetInfo().SetActive(true);
         }
 
         player.SpawnWeaponPlayer();
-        player.GetCircleRangeAtk().SetActive(true);
+        player.CircleRangeAtk.SetActive(true);
         animPlayer.LoadWeaponData();
     }
     public void GoToZombieCity(int sceneID)
     {
+        player.InstantiateWeapon();
+        player.Weapon.tag = Constant.WEAPONDATA;
+        DontDestroyOnLoad(player.Weapon);
         SceneManager.LoadScene(sceneID);
     }
     public void GoWeaponUI()
     {
         goShopUI.SetActive(false);
         camWeaponUI.SetActive(true);
-        SwitchTabWerponUI(player.GetIndexWeaponCur());
+        SwitchTabWerponUI(player.IndexWeaponCur);
         ChooseSkinWeapon(indexSkinWeaponCur);
         weaponUI.SetActive(true);
         player.gameObject.SetActive(false);
@@ -247,7 +252,7 @@ public class GameManager : MonoBehaviour
         goShopUI.SetActive(false);
         camSkinUI.SetActive(true);
         skinUI.SetActive(true);
-        player.SetDance();
+        player.StateAnim = StateAnimation.Dance;
         SwitchTabSkinUI(player.GetIndexSkinCur());
         player.AutoSetChangeTab(player.GetIndexSkinCur());
         camManager.MoveCameraToSkinUI(1);
@@ -328,8 +333,8 @@ public class GameManager : MonoBehaviour
     void GameWinSquence()
     {
         isGameWin = true;
-        numGoldGameWin.text = (player.GetLevel() * 2).ToString();
-        namePlayer.text = player.GetNamePlayer();
+        numGoldGameWin.text = (player.Level * 2).ToString();
+        namePlayer.text = player.NamePlayer;
         gameWinUI.SetActive(true);
     }
 
@@ -411,7 +416,7 @@ public class GameManager : MonoBehaviour
         tabWeaponUI[Mathf.Clamp(indexTab + 1, 0, tabWeaponUI.Length - 1)].SetActive(false);
         tabWeaponUI[indexTab].SetActive(true);
         
-        if (indexTabChoose != player.GetIndexWeaponCur())
+        if (indexTabChoose != player.IndexWeaponCur)
         {
             ChooseSkinWeaponCustom(false);
             ChooseSkinWeapon(2);
@@ -434,7 +439,7 @@ public class GameManager : MonoBehaviour
     {
         indexSkinWeaponChoose = index;
 
-        if (player.GetIndexWeaponCur() == indexTabChoose && indexSkinWeaponChoose == indexSkinWeaponCur)
+        if (player.IndexWeaponCur == indexTabChoose && indexSkinWeaponChoose == indexSkinWeaponCur)
         {
             player.GetTextWeaponUses()[indexTabChoose].text = Constant.EQUIPPED;
         }
@@ -484,7 +489,7 @@ public class GameManager : MonoBehaviour
         goShopUI.SetActive(true);
         camSkinUI.SetActive(false);
         skinUI.SetActive(false);
-        player.SetIdle();
+        player.StateAnim = StateAnimation.Idle;
         player.LoadSkinCur();
         camManager.MoveCameraToSkinUI(-1);
     }
@@ -515,13 +520,32 @@ public class GameManager : MonoBehaviour
         {
             foreach (Image hair in isChooseHairs)
                 hair.enabled = false;
-
+            foreach (int i in player.HairsBought)
+                if (i == indexChoose)
+                {
+                    ChooseSkinBought(true);
+                    break;
+                }
+                else
+                {
+                    ChooseSkinBought(false);
+                }
             isChooseHairs[indexChoose].enabled = true;
         }
         else if (indexTabSkinCur == (int)SkinOrder.Pant)
         {
             foreach (Image pant in isChoosePants)
                 pant.enabled = false;
+            foreach (int i in player.PantsBought)
+                if (i == indexChoose)
+                {
+                    ChooseSkinBought(true);
+                    break;
+                }
+                else
+                {
+                    ChooseSkinBought(false);
+                }
 
             isChoosePants[indexChoose].enabled = true;
         }
@@ -529,6 +553,16 @@ public class GameManager : MonoBehaviour
         {
             foreach (Image shield in isChooseShield)
                 shield.enabled = false;
+            foreach (int i in player.ShieldsBought)
+                if (i == indexChoose)
+                {
+                    ChooseSkinBought(true);
+                    break;
+                }
+                else
+                {
+                    ChooseSkinBought(false);
+                }
 
             isChooseShield[indexChoose].enabled = true;
         }
@@ -538,112 +572,188 @@ public class GameManager : MonoBehaviour
                 set.enabled = false;
 
             isChooseSet[indexChoose].enabled = true;
+            attributeSet.text = dataPlayer.GetSetData(indexChoose).attribute;
+        }
+    }
+     public void ChooseSkinBought(bool b)
+    {
+        if (b)
+        {
+            posUseSkinBtn[indexTabSkinCur].anchoredPosition = new Vector2(0, -520);
+            adsSkinBuyBtn[indexTabSkinCur].SetActive(false);
+        }
+        else
+        {
+            posUseSkinBtn[indexTabSkinCur].anchoredPosition = new Vector2(-300, -520);
+            adsSkinBuyBtn[indexTabSkinCur].SetActive(true);
         }
     }
 
     //get, set
-    public GameObject[] GetCharacter()
+    public GameObject[] Characters
     {
-        return characters;
+        get {
+            return characters;
+        }
     }
-    public Transform[] GetPosEnemy()
+    public Transform[] PosEnemy
     {
-        return posCharacters;
+        get
+        {
+            return posCharacters;
+        }
     }
-    public CapsuleCollider[] GetColliCharacter()
+    public CapsuleCollider[] ColliCharacter
     {
-        return colliCharacters;
+        get
+        {
+            return colliCharacters;
+        }
     }
-    public EnemyManager[] GetEnemy()
+    public EnemyManager[] Enemys
     {
-        return enemys;
+        get
+        {
+            return enemys;
+        }
     }
-    public Material[] GetBody()
+    public Material[] ColorBodys
     {
-        return colorBodys;
+        get
+        {
+            return colorBodys;
+        }
     }
-    public Material[] GetPant()
+    public Material[] ColorPants
     {
-        return colorPants;
+        get
+        {
+            return colorPants;
+        }
     }
-    public GameObject[] GetHair ()
+    public GameObject[] Hairs
     {
-        return hairs;
+        get
+        {
+            return hairs;
+        }
     }
-    public GameObject[] GetShield()
+    public GameObject[] Shields
     {
-        return shields;
+        get
+        {
+            return shields;
+        }
     }
-    public int GetNumAlive()
+    public int Alive
     {
-        return alive;
+        get
+        {
+            return alive;
+        }
     }
-    public void SetIsGameOver(bool b)
+    public bool IsGameOver
     {
-        isGameOver = b;
+        get
+        {
+            return isGameOver;
+        }
+        set
+        {
+            isGameOver = value;
+        }      
     }
-    public bool GetIsGameOver()
+    public bool IsStartGame
     {
-        return isGameOver;
+        get
+        {
+            return isGameStart;
+        }
     }
-    public bool GetIsStartGame()
+    public int Gold
     {
-        return isGameStart;
+        get
+        {
+            return gold;
+        }
+        set
+        {
+            gold = value;
+        }
     }
-    public int GetGold()
+    public PlayerManager Player
     {
-        return gold;
+        get
+        {
+            return player;
+        }
     }
-    public void SetGold(int i) 
+    public DataPlayer DataPlayer
     {
-        gold += i;
+        get
+        {
+            return dataPlayer;
+        }
+
     }
-    public PlayerManager GetPlayer()
+    public GameObject[] TabWeaponUI
     {
-        return player;
+        get
+        {
+            return tabWeaponUI;
+        }
     }
-    public DataPlayer GetDataPlayer()
+    public int NumGoldHome
     {
-        return dataPlayer;
+        set
+        {
+            numGoldHome.text = value.ToString();
+        }
     }
-    public GameObject[] GetTabWeaponUI()
+    public bool IsGameWin
     {
-        return tabWeaponUI;
+        get
+        {
+            return isGameWin;
+        }
     }
-    public void SetNumGoldText(int i)
+    public bool IsRevivePlayer
     {
-        numGoldHome.text = i.ToString();
+        get
+        {
+            return isRevivePlayer;
+        }
     }
-    public bool GetIsGameWin()
+    public int IndexSkinWeaponCur
     {
-        return isGameWin;
+        get
+        {
+            return indexSkinWeaponCur;
+        }
+        set
+        {
+            indexSkinWeaponCur = value;
+        }
     }
-    public bool GetIsRevivePlayer()
+    public int IndexSkinWeaponChoose
     {
-        return isRevivePlayer;
+        get
+        {
+            return indexSkinWeaponChoose;
+        }
     }
-    public int GetIndexSkinWeaponCur()
+    public MeshRenderer[] SkinWeapon
     {
-        return indexSkinWeaponCur;
+        get
+        {
+            return skinWeapon;
+        }
     }
-    public void SetIndexSkinWeaponCur(int i)
+    public List<int> WeaponCustoms
     {
-        indexSkinWeaponCur = i;
-    }
-    public int GetIndexSkinWeaponChoose()
-    {
-        return indexSkinWeaponChoose;
-    }
-    public int GetIndexTabChoose()
-    {
-        return indexTabChoose;
-    }
-    public MeshRenderer[] GetSkinWeapon()
-    {
-        return skinWeapon;
-    }
-    public List<int> GetWeaponCustoms()
-    {
-        return weaponCustoms;
+        get
+        {
+            return weaponCustoms;
+        }
     }
 }

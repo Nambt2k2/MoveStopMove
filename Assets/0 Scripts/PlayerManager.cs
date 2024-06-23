@@ -51,26 +51,26 @@ public class PlayerManager : MonoBehaviour
         textLevel = info.GetComponentsInChildren<Text>()[1];
         info.SetActive(false);
 
-        inputNamePlayer.text = GameManager.Instance.GetDataPlayer().LoadGame().GetNamePlayer();
-        indexWeaponCur = GameManager.Instance.GetDataPlayer().LoadGame().GetIndexWeaponCur();
-        indexWeaponOpen = GameManager.Instance.GetDataPlayer().LoadGame().GetIndexWeaponOpen();
-        hairCur = GameManager.Instance.GetDataPlayer().LoadGame().GetIndexHairCur();
+        inputNamePlayer.text = GameManager.Instance.DataPlayer.LoadGame().NamePlayer;
+        indexWeaponCur = GameManager.Instance.DataPlayer.LoadGame().IndexWeaponCur;
+        indexWeaponOpen = GameManager.Instance.DataPlayer.LoadGame().IndexWeaponOpen;
+        hairCur = GameManager.Instance.DataPlayer.LoadGame().IndexHairCur;
         SetHair(hairCur);
-        hairsBought = GameManager.Instance.GetDataPlayer().LoadGame().GetHairBought();
-        pantCur = GameManager.Instance.GetDataPlayer().LoadGame().GetIndexPantCur();
+        hairsBought = GameManager.Instance.DataPlayer.LoadGame().HairsBought;
+        pantCur = GameManager.Instance.DataPlayer.LoadGame().IndexPantCur;
         SetPant(pantCur);
-        pantsBought = GameManager.Instance.GetDataPlayer().LoadGame().GetPantBought();
-        shieldCur = GameManager.Instance.GetDataPlayer().LoadGame().GetIndexShieldCur();
+        pantsBought = GameManager.Instance.DataPlayer.LoadGame().PantsBought;
+        shieldCur = GameManager.Instance.DataPlayer.LoadGame().IndexShieldCur;
         SetShield(shieldCur);
-        shieldsBought = GameManager.Instance.GetDataPlayer().LoadGame().GetShieldBought();
-        setCur = GameManager.Instance.GetDataPlayer().LoadGame().GetIndexSetCur();
+        shieldsBought = GameManager.Instance.DataPlayer.LoadGame().ShieldsBought;
+        setCur = GameManager.Instance.DataPlayer.LoadGame().IndexSetCur;
         SetSet(setCur);
-        setsBought = GameManager.Instance.GetDataPlayer().LoadGame().GetSetBought();
+        setsBought = GameManager.Instance.DataPlayer.LoadGame().SetsBought;
         ReadyOpenWeaponUI();
     }
     void Update()
     {
-        if (GameManager.Instance.GetIsStartGame())
+        if (GameManager.Instance.IsStartGame)
         {
             Move();
             CheckRangeAtk();
@@ -82,17 +82,17 @@ public class PlayerManager : MonoBehaviour
         }
 
         anim.UpdateAnimation(stateAnim);
-        if (GameManager.Instance.GetIsGameWin())
+        if (GameManager.Instance.IsGameWin)
         {
             enabled = false;
             rigid.velocity = Vector3.zero;
-            GameManager.Instance.SetGold(level * 2);
+            GameManager.Instance.Gold += level * 2;
             anim.UpdateAnimation(StateAnimation.Win);
         }
     }
     void FixedUpdate()
     {
-        if (GameManager.Instance.GetIsStartGame() && weaponController.IsKillEnemy())
+        if (GameManager.Instance.IsStartGame && weaponController.IsKillEnemy())
         {
             rangeAtk *= Constant.ZOOMLEVELUP;
             cam.ShrinkCamera();
@@ -108,24 +108,24 @@ public class PlayerManager : MonoBehaviour
         {
             for (int i = 0; i < Constant.NUMCHARACTER1TURN - 1; i++)
             {
-                GameManager.Instance.GetEnemy()[i].IsPlayerChooseAtk(false);
+                GameManager.Instance.Enemys[i].IsPlayerChooseAtk(false);
             }
             enabled = false;
             rigid.velocity = Vector3.zero;
             colli.enabled = false;
             circleRangeAtk.SetActive(false);
             anim.UpdateAnimation(StateAnimation.Dead);
-            GameManager.Instance.SetIsGameOver(true);
-            GameManager.Instance.SetNumRank(GameManager.Instance.GetNumAlive());
+            GameManager.Instance.IsGameOver = true;
+            GameManager.Instance.SetNumRank(GameManager.Instance.Alive);
             GameManager.Instance.SetNameEnemyKillPlayer(
                 other.gameObject.GetComponent<WeaponManager>().getCharacter().GetComponent<EnemyManager>().GetNameEnemy());
-            if (!GameManager.Instance.GetIsRevivePlayer())
+            if (!GameManager.Instance.IsRevivePlayer)
             {
                 goldBeforeDie = level * 2;
             }
             else
             {
-                GameManager.Instance.SetGold(-goldBeforeDie);
+                GameManager.Instance.Gold -= goldBeforeDie;
             }
             GameManager.Instance.SetNumGold(level * 2);
         }
@@ -151,7 +151,7 @@ public class PlayerManager : MonoBehaviour
             isMove = false;
         }
     }
-    
+
     public void RevivePlayer()
     {
         transform.position = new Vector3(Random.Range(-15, 15), 50.1f, Random.Range(-15, 15));
@@ -165,9 +165,9 @@ public class PlayerManager : MonoBehaviour
     {
         for (int i = 0; i < Constant.NUMCHARACTER1TURN; i++)
         {
-            if (GameManager.Instance.GetCharacter()[i].activeSelf && GameManager.Instance.GetColliCharacter()[i].enabled)
+            if (GameManager.Instance.Characters[i].activeSelf && GameManager.Instance.ColliCharacter[i].enabled)
             {
-                distances[i] = (GameManager.Instance.GetPosEnemy()[i].position - transform.position).sqrMagnitude;
+                distances[i] = (GameManager.Instance.PosEnemy[i].position - transform.position).sqrMagnitude;
             }
             else
             {
@@ -202,12 +202,12 @@ public class PlayerManager : MonoBehaviour
 
         for (int i = 1; i < Constant.NUMCHARACTER1TURN; i++)
         {
-            GameManager.Instance.GetEnemy()[i - 1].IsPlayerChooseAtk(false);
+            GameManager.Instance.Enemys[i - 1].IsPlayerChooseAtk(false);
             if (min == distances[i] && min < rangeAtk * rangeAtk)
             {
                 inRangeAtk = true;
-                posEnemy = GameManager.Instance.GetPosEnemy()[i].position;
-                GameManager.Instance.GetEnemy()[i - 1].IsPlayerChooseAtk(true);
+                posEnemy = GameManager.Instance.PosEnemy[i].position;
+                GameManager.Instance.Enemys[i - 1].IsPlayerChooseAtk(true);
             }
         }
     }
@@ -266,6 +266,10 @@ public class PlayerManager : MonoBehaviour
         weaponController = weapon.GetComponent<WeaponManager>();
         weaponController.SetCharacter(transform);
     }
+    public void InstantiateWeapon()
+    {
+        weapon = Instantiate(weaponPrefab[indexWeaponCur]);
+    }
     public float SqrMagnitudeWeaponToPlayer()
     {
         return (transform.position - weapon.transform.position).sqrMagnitude;
@@ -299,96 +303,17 @@ public class PlayerManager : MonoBehaviour
     {
         holdWeapon.gameObject.SetActive(true);
     }
-
-    //set, get
-    public GameObject GetCircleRangeAtk()
-    {
-        return circleRangeAtk;
-    }
-    public GameObject GetInfo()
-    {
-        return info;
-    }
-    public void SetDance()
-    {
-        stateAnim = StateAnimation.Dance;
-    }
-    public void SetIdle()
-    {
-        stateAnim = StateAnimation.Idle;
-    }
-    public string GetNamePlayer()
-    {
-        return inputNamePlayer.text;
-    }
-    public int GetLevel()
-    {
-        return level;
-    }
-    public GameObject GetWeapon()
-    {
-        return weapon;
-    }
-    public bool GetIsMove()
-    {
-        return isMove;
-    }
-
-    //weapon
-    public int GetIndexWeaponOpen()
-    {
-        return indexWeaponOpen;
-    }
-    public int GetIndexWeaponCur()
-    {
-        return indexWeaponCur;
-    }
-    //hair
-    public int GetHairCur()
-    {
-        return hairCur;
-    }
-    public List<int> GetHairsBought()
-    {
-        return hairsBought;
-    }
-    //pant
-    public int GetPantCur()
-    {
-        return pantCur;
-    }
-    public List<int> GetPantsBought()
-    {
-        return pantsBought;
-    }
-    //shield
-    public int GetShieldCur()
-    {
-        return shieldCur;
-    }
-    public List<int> GetShieldsBought()
-    {
-        return shieldsBought;
-    }
-    //set
-    public int GetSetCur()
-    {
-        return setCur;
-    }
-    public List<int> GetSetsBought()
-    {
-        return setsBought;
-    }
+    
     //UI
     public void BuyWeapon(int index)
     {
         int cost = 0;
-        cost = GameManager.Instance.GetDataPlayer().GetWeaponData(index + 1).cost;
+        cost = GameManager.Instance.DataPlayer.GetWeaponData(index + 1).cost;
 
-        if (indexWeaponOpen == index && cost <= GameManager.Instance.GetGold())
+        if (indexWeaponOpen == index && cost <= GameManager.Instance.Gold)
         {
-            GameManager.Instance.SetGold(-cost);
-            GameManager.Instance.SetNumGoldText(GameManager.Instance.GetGold());
+            GameManager.Instance.Gold -= cost;
+            GameManager.Instance.NumGoldHome = GameManager.Instance.Gold;
             weaponBuys[indexWeaponOpen].gameObject.SetActive(false);
             indexWeaponOpen++;
             weaponUses[indexWeaponOpen].gameObject.SetActive(true);
@@ -396,12 +321,12 @@ public class PlayerManager : MonoBehaviour
     }
     public void UseWeapon(int index)
     {
-        if (indexWeaponCur != index || 
-            GameManager.Instance.GetIndexSkinWeaponCur() != GameManager.Instance.GetIndexSkinWeaponChoose()
+        if (indexWeaponCur != index ||
+            GameManager.Instance.IndexSkinWeaponCur != GameManager.Instance.IndexSkinWeaponChoose
             && index <= indexWeaponOpen)
         {
             indexWeaponCur = index;
-            GameManager.Instance.SetIndexSkinWeaponCur(GameManager.Instance.GetIndexSkinWeaponChoose());
+            GameManager.Instance.IndexSkinWeaponCur = GameManager.Instance.IndexSkinWeaponChoose;
             GameManager.Instance.WeaponUIGoHomeUI();
         }
         if (weaponUses[index].text == Constant.EQUIPPED)
@@ -425,17 +350,17 @@ public class PlayerManager : MonoBehaviour
         ChangeColorWeaponCustom();
         weaponUses[indexWeaponCur].text = Constant.EQUIPPED;
 
-        int length = GameManager.Instance.GetTabWeaponUI().Length;
+        int length = GameManager.Instance.TabWeaponUI.Length;
         for (int i = 0; i < length; i++)
         {
-            GameManager.Instance.GetTabWeaponUI()[i].SetActive(false);
+            GameManager.Instance.TabWeaponUI[i].SetActive(false);
         }
-        GameManager.Instance.GetTabWeaponUI()[indexWeaponCur].SetActive(true);
+        GameManager.Instance.TabWeaponUI[indexWeaponCur].SetActive(true);
     }
     public void ChangeColorWeaponCustom()
     {
-        holdWeapons[indexWeaponCur].materials = GameManager.Instance.GetSkinWeapon()
-            [GameManager.Instance.GetIndexSkinWeaponCur() + indexWeaponCur * 5].materials;
+        holdWeapons[indexWeaponCur].materials = GameManager.Instance.SkinWeapon
+            [GameManager.Instance.IndexSkinWeaponCur + indexWeaponCur * 5].materials;
         weaponPrefab[indexWeaponCur].GetComponent<MeshRenderer>().materials = holdWeapons[indexWeaponCur].materials;
     }
     public void BuyHair()
@@ -448,10 +373,10 @@ public class PlayerManager : MonoBehaviour
             }
         }
 
-        if (Constant.COSTSKIN <= GameManager.Instance.GetGold())
+        if (Constant.COSTSKIN <= GameManager.Instance.Gold)
         {
-            GameManager.Instance.SetGold(-Constant.COSTSKIN);
-            GameManager.Instance.SetNumGoldText(GameManager.Instance.GetGold());
+            GameManager.Instance.Gold -= Constant.COSTSKIN;
+            GameManager.Instance.NumGoldHome = GameManager.Instance.Gold;
             hairsBought.Add(indexSkinChoose);
             SetBoughtSkin(hairBuy, hairUse);
         }
@@ -467,7 +392,7 @@ public class PlayerManager : MonoBehaviour
                     hairCur = indexSkinChoose;
                     SetHair(hairCur);
                     hairUse.text = Constant.UNEQUIP;
-                    setCur = pantCur = shieldCur =-1;
+                    setCur = pantCur = shieldCur = -1;
                 }
                 else
                 {
@@ -493,7 +418,7 @@ public class PlayerManager : MonoBehaviour
                     SetBoughtSkin(hairUse, hairBuy);
         }
 
-        if (indexSkinChoose != GetHairCur())
+        if (indexSkinChoose != hairCur)
         {
             hairUse.text = Constant.SELECT;
         }
@@ -512,10 +437,10 @@ public class PlayerManager : MonoBehaviour
             }
         }
 
-        if (Constant.COSTSKIN <= GameManager.Instance.GetGold())
+        if (Constant.COSTSKIN <= GameManager.Instance.Gold)
         {
-            GameManager.Instance.SetGold(-Constant.COSTSKIN);
-            GameManager.Instance.SetNumGoldText(GameManager.Instance.GetGold());
+            GameManager.Instance.Gold -= Constant.COSTSKIN;
+            GameManager.Instance.NumGoldHome = GameManager.Instance.Gold;
             pantsBought.Add(indexSkinChoose);
             SetBoughtSkin(pantBuy, pantUse);
         }
@@ -557,7 +482,7 @@ public class PlayerManager : MonoBehaviour
                     SetBoughtSkin(pantUse, pantBuy);
         }
 
-        if (indexSkinChoose != GetPantCur())
+        if (indexSkinChoose != pantCur)
         {
             pantUse.text = Constant.SELECT;
         }
@@ -576,10 +501,10 @@ public class PlayerManager : MonoBehaviour
             }
         }
 
-        if (Constant.COSTSKIN <= GameManager.Instance.GetGold())
+        if (Constant.COSTSKIN <= GameManager.Instance.Gold)
         {
-            GameManager.Instance.SetGold(-Constant.COSTSKIN);
-            GameManager.Instance.SetNumGoldText(GameManager.Instance.GetGold());
+            GameManager.Instance.Gold -= Constant.COSTSKIN;
+            GameManager.Instance.NumGoldHome = GameManager.Instance.Gold;
             shieldsBought.Add(indexSkinChoose);
             SetBoughtSkin(shieldBuy, shieldUse);
         }
@@ -621,7 +546,7 @@ public class PlayerManager : MonoBehaviour
                     SetBoughtSkin(shieldUse, shieldBuy);
         }
 
-        if (indexSkinChoose != GetShieldCur())
+        if (indexSkinChoose != shieldCur)
         {
             shieldUse.text = Constant.SELECT;
         }
@@ -640,10 +565,10 @@ public class PlayerManager : MonoBehaviour
             }
         }
 
-        if (Constant.COSTSKIN <= GameManager.Instance.GetGold())
+        if (Constant.COSTSKIN <= GameManager.Instance.Gold)
         {
-            GameManager.Instance.SetGold(-Constant.COSTSETSKIN);
-            GameManager.Instance.SetNumGoldText(GameManager.Instance.GetGold());
+            GameManager.Instance.Gold -= Constant.COSTSETSKIN;
+            GameManager.Instance.NumGoldHome = GameManager.Instance.Gold;
             setsBought.Add(indexSkinSetChoose);
             SetBoughtSkin(setBuy, setUse);
         }
@@ -688,7 +613,7 @@ public class PlayerManager : MonoBehaviour
                 }
             }
         }
-        if (indexSkinSetChoose != GetSetCur())
+        if (indexSkinSetChoose != setCur)
         {
             setUse.text = Constant.SELECT;
         }
@@ -746,7 +671,7 @@ public class PlayerManager : MonoBehaviour
         {
             case (int)SkinOrder.Hair:
                 LoadSkinOrigin();
-                GameManager.Instance.SwitchChooseSkin(GetHairCur());
+                GameManager.Instance.SwitchChooseSkin(hairCur);
                 if (hairCur < 0)
                 {
                     SetHair(0);
@@ -758,7 +683,7 @@ public class PlayerManager : MonoBehaviour
                 break;
             case (int)SkinOrder.Pant:
                 LoadSkinOrigin();
-                GameManager.Instance.SwitchChooseSkin(GetPantCur());
+                GameManager.Instance.SwitchChooseSkin(pantCur);
                 if (pantCur < 0)
                 {
                     SetPant(0);
@@ -770,7 +695,7 @@ public class PlayerManager : MonoBehaviour
                 break;
             case (int)SkinOrder.Shield:
                 LoadSkinOrigin();
-                GameManager.Instance.SwitchChooseSkin(GetShieldCur());
+                GameManager.Instance.SwitchChooseSkin(shieldCur);
                 if (shieldCur < 0)
                 {
                     SetShield(0);
@@ -782,7 +707,7 @@ public class PlayerManager : MonoBehaviour
                 break;
             case (int)SkinOrder.Set:
                 LoadSkinOrigin();
-                GameManager.Instance.SwitchChooseSkin(GetSetCur());
+                GameManager.Instance.SwitchChooseSkin(setCur);
                 if (setCur < 0)
                 {
                     SetSet(0);
@@ -816,9 +741,9 @@ public class PlayerManager : MonoBehaviour
     public void SetPant(int index)
     {
         ReadyOpenPantUI(index);
-        if (index >= 0 && index < GameManager.Instance.GetPant().Length)
+        if (index >= 0 && index < GameManager.Instance.ColorPants.Length)
         {
-            pant.material = GameManager.Instance.GetPant()[index];
+            pant.material = GameManager.Instance.ColorPants[index];
         }
         if (index < 0)
         {
@@ -850,8 +775,8 @@ public class PlayerManager : MonoBehaviour
         if (index == 0)
         {
             LoadSkinOrigin();
-            pant.material = GameManager.Instance.GetBody()[3];
-            body.material = GameManager.Instance.GetBody()[3];
+            pant.material = GameManager.Instance.ColorBodys[3];
+            body.material = GameManager.Instance.ColorBodys[3];
             hairs[3].SetActive(true);
             sets[0].SetActive(true);
             sets[1].SetActive(true);
@@ -859,15 +784,15 @@ public class PlayerManager : MonoBehaviour
         else if (index == 1)
         {
             LoadSkinOrigin();
-            pant.material = GameManager.Instance.GetBody()[5];
-            body.material = GameManager.Instance.GetBody()[5];
+            pant.material = GameManager.Instance.ColorBodys[5];
+            body.material = GameManager.Instance.ColorBodys[5];
             hairs[4].SetActive(true);
             sets[2].SetActive(true);
             sets[3].SetActive(true);
         }
         if (index < 0)
         {
-            LoadSkinCur();  
+            LoadSkinCur();
         }
     }
     public Text[] GetTextWeaponUses()
@@ -878,7 +803,7 @@ public class PlayerManager : MonoBehaviour
     {
         if (hairCur >= 0)
         {
-            return (int) SkinOrder.Hair;
+            return (int)SkinOrder.Hair;
         }
         if (pantCur >= 0)
         {
@@ -893,5 +818,131 @@ public class PlayerManager : MonoBehaviour
             return (int)SkinOrder.Set;
         }
         return (int)SkinOrder.Hair;
+    }
+
+    //set, get
+    public GameObject CircleRangeAtk
+    {
+        get
+        {
+            return circleRangeAtk;
+        }
+    }
+    public GameObject Info
+    {
+        get
+        {
+            return info;
+        }
+    }
+    public StateAnimation StateAnim
+    {
+        set
+        {
+            stateAnim = value;
+        }
+    }
+    public string NamePlayer
+    {
+        get
+        {
+            return inputNamePlayer.text;
+        }
+    }
+    public int Level
+    {
+        get
+        {
+            return level;
+        }
+    }
+    public GameObject Weapon
+    {
+        get
+        {
+            return weapon;
+        }
+    }
+    public bool IsMove
+    {
+        get
+        {
+            return isMove;
+        }
+    }
+    //weapon
+    public int IndexWeaponOpen
+    {
+        get
+        {
+            return indexWeaponOpen;
+        }
+    }
+    public int IndexWeaponCur
+    {
+        get
+        {
+            return indexWeaponCur;
+        }
+    }
+    //hair
+    public int HairCur
+    {
+        get
+        {
+            return hairCur;         
+        }
+    }
+    public List<int> HairsBought
+    {
+        get
+        {
+            return hairsBought;
+        }
+    }
+    //pant
+    public int PantCur
+    {
+        get
+        {
+            return pantCur;
+        }
+    }
+    public List<int> PantsBought
+    {
+        get
+        {
+            return pantsBought;
+        }
+    }
+    //shield
+    public int ShieldCur
+    {
+        get
+        {
+            return shieldCur;
+        }
+    }
+    public List<int> ShieldsBought
+    {
+        get
+        {
+            return shieldsBought;
+        }
+    }
+    //set
+    public int SetCur
+    {
+        get
+        {
+            return setCur;
+        }
+    }
+    public List<int> SetsBought
+    {
+        get
+        {
+            return setsBought;
+        }
     }
 }
